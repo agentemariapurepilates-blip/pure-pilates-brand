@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formas Pure Pilates — Biblioteca de padrão para e-mails</title>
+<style>
+  body{margin:0;padding:0;background:#F6EFE2;font-family:'Montserrat',Arial,'Helvetica Neue',Helvetica,sans-serif;color:#231F20;}
+  .wrap{max-width:920px;margin:0 auto;padding:40px 24px 80px;}
+  h1{font-size:26px;color:#C12030;margin:0 0 6px;}
+  .sub{font-size:14px;line-height:1.6;margin:0 0 28px;color:#5b5651;}
+  .note{background:#fff;border-left:4px solid #DB9828;border-radius:6px;padding:14px 18px;font-size:13px;line-height:1.6;margin:0 0 36px;}
+  .note b{color:#C12030;}
+  .shape{background:#fff;border-radius:14px;padding:24px;margin:0 0 22px;display:flex;gap:28px;align-items:center;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+  .render{flex:0 0 300px;display:flex;align-items:center;justify-content:center;min-height:200px;}
+  .meta{flex:1;min-width:280px;}
+  .meta h3{margin:0 0 4px;font-size:16px;color:#231F20;}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;margin:0 0 10px;}
+  .ok{background:#e4f5ea;color:#1c7a44;}
+  .warn{background:#fdf0d8;color:#9a6a10;}
+  .rad{font-family:Consolas,Monaco,monospace;font-size:13px;background:#F6EFE2;padding:6px 10px;border-radius:6px;display:inline-block;margin:0 0 12px;color:#C12030;}
+  pre{background:#2b2b2b;color:#f2f2f2;border-radius:8px;padding:14px;font-size:11.5px;line-height:1.55;overflow-x:auto;margin:0;}
+  .desc{font-size:13px;line-height:1.6;color:#5b5651;margin:0 0 10px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Formas Pure Pilates — padrão para e-mails</h1>
+  <p class="sub">As 4 formas reproduzidas em HTML pronto pra colar. Técnica única: <b>tabela + <code>bgcolor</code> + <code>border-radius</code></b> (cada canto na ordem <code>superior-esq · superior-dir · inferior-dir · inferior-esq</code>).</p>
+
+  <div class="note">
+    <b>Compatibilidade:</b> ✅ Gmail (web/app), Apple Mail, Yahoo, iOS, Android renderizam os cantos perfeitamente.
+    ⚠️ <b>Outlook para Windows (desktop)</b> ignora <code>border-radius</code> e mostra a forma como <b>retângulo de cantos retos</b> — a cor e o tamanho ficam certos, só perde o arredondamento.
+    Se um disparo for crítico pra base Outlook-desktop, a gente troca a forma por <b>imagem PNG</b> (idêntica em todo lugar). Para Gmail — que é o seu caso — o HTML abaixo já entrega.
+  </div>
+
+  <!-- FORMA 1 -->
+  <div class="shape">
+    <div class="render">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#C12030" style="background-color:#C12030;border-radius:80px 140px 140px 0;width:300px;height:140px;">
+        <tr><td style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
+      </table>
+    </div>
+    <div class="meta">
+      <span class="tag ok">✅ Reproduz bem</span>
+      <h3>1 · Banner largo — ponta direita + canto reto (rabinho)</h3>
+      <p class="desc">Lado direito em arco forte + canto inferior-esquerdo reto (o "rabinho" da assinatura Pure: 3 cantos redondos + 1 reto).</p>
+      <span class="rad">border-radius: 80px 140px 140px 0</span>
+<pre>&lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"
+  bgcolor="#C12030" style="background-color:#C12030;
+  border-radius:80px 140px 140px 0;width:520px;height:200px;"&gt;
+  &lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+    </div>
+  </div>
+
+  <!-- FORMA 2 -->
+  <div class="shape">
+    <div class="render">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#C12030" style="background-color:#C12030;border-radius:160px 0 0 0;width:200px;height:200px;">
+        <tr><td style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
+      </table>
+    </div>
+    <div class="meta">
+      <span class="tag ok">✅ Reproduz bem</span>
+      <h3>2 · Quadrado — só o canto superior-esquerdo arredondado</h3>
+      <p class="desc">Três cantos retos e um arco grande no topo-esquerdo. Boa pra blocos de destaque.</p>
+      <span class="rad">border-radius: 160px 0 0 0</span>
+<pre>&lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"
+  bgcolor="#C12030" style="background-color:#C12030;
+  border-radius:160px 0 0 0;width:260px;height:260px;"&gt;
+  &lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+    </div>
+  </div>
+
+  <!-- FORMA 3 -->
+  <div class="shape">
+    <div class="render">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#C12030" style="background-color:#C12030;border-radius:50% 50% 0 50%;width:200px;height:200px;">
+        <tr><td style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
+      </table>
+    </div>
+    <div class="meta">
+      <span class="tag ok">✅ Reproduz bem</span>
+      <h3>3 · Folha / pétala (3 cantos redondos + 1 reto)</h3>
+      <p class="desc">Mesma lógica dos cards do "Como indicar". O canto inferior-direito vira ponta.</p>
+      <span class="rad">border-radius: 50% 50% 0 50%</span>
+<pre>&lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"
+  bgcolor="#C12030" style="background-color:#C12030;
+  border-radius:50% 50% 0 50%;width:250px;height:250px;"&gt;
+  &lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+    </div>
+  </div>
+
+  <!-- FORMA 4 -->
+  <div class="shape">
+    <div class="render">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" bgcolor="#C12030" style="background-color:#C12030;border-radius:0 130px 130px 0;width:230px;height:200px;">
+        <tr><td style="font-size:1px;line-height:1px;">&nbsp;</td></tr>
+      </table>
+    </div>
+    <div class="meta">
+      <span class="tag ok">✅ Reproduz bem</span>
+      <h3>4 · "D" — lado esquerdo reto, direito em arco</h3>
+      <p class="desc">Esquerda totalmente reta (cantos quadrados), direita em meia-cápsula. Boa pra encostar na borda esquerda.</p>
+      <span class="rad">border-radius: 0 130px 130px 0</span>
+<pre>&lt;table role="presentation" cellpadding="0" cellspacing="0" border="0"
+  bgcolor="#C12030" style="background-color:#C12030;
+  border-radius:0 130px 130px 0;width:250px;height:250px;"&gt;
+  &lt;tr&gt;&lt;td&gt;&amp;nbsp;&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
