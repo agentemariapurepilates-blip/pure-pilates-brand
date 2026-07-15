@@ -86,10 +86,19 @@ header.nav.scrolled{background:color-mix(in srgb,var(--cream) 86%,transparent);b
 .nav-links a{color:var(--ink-soft);transition:color .2s;position:relative}
 .nav-links a:hover{color:var(--red)}
 .nav-cta{display:flex;align-items:center;gap:1rem}
-.hamb{display:none}
+.hamb{display:none;position:fixed;top:18px;right:16px;z-index:100;flex-direction:column;gap:6px;background:none;border:0;cursor:pointer;padding:8px}
+.hamb span{width:28px;height:3px;background:var(--red);border-radius:2px;transition:transform .25s,opacity .25s}
 @media(max-width:920px){
-  .nav-links{display:none}
-  .nav-cta .btn-lbl{display:none}
+  header.nav{background:var(--cream);border-bottom:1px solid var(--line)}
+  .nav-cta{display:none}
+  .hamb{display:flex}
+  .nav-links{position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;
+    background:var(--cream);border-top:1px solid var(--line);box-shadow:0 14px 30px rgba(0,0,0,.12);padding:6px 0;display:none}
+  .nav.nav-open .nav-links{display:flex}
+  .nav-links a{padding:15px 24px;font-size:1rem}
+  .nav.nav-open .hamb span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .nav.nav-open .hamb span:nth-child(2){opacity:0}
+  .nav.nav-open .hamb span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 }
 
 /* ---------- hero (foto full-bleed, atrás do menu) ---------- */
@@ -109,12 +118,17 @@ header.nav.scrolled{background:color-mix(in srgb,var(--cream) 86%,transparent);b
 .hero-copy{max-width:min(36rem,52%)}
 .hero h1{font-size:clamp(2.4rem,6.2vw,4.7rem);font-weight:800;color:var(--ink);margin:0 0 1.5rem;letter-spacing:-.035em;line-height:1.03}
 @media(max-width:760px){
-  .hero-photo{aspect-ratio:auto;min-height:clamp(520px,82vh,700px);align-items:flex-start}
-  .hero-inner{padding-top:clamp(92px,26vw,132px)}
-  .hero-bg{object-position:center bottom}
+  .hero{margin-top:0}
+  .hero-photo{aspect-ratio:auto;min-height:clamp(580px,90vh,780px);align-items:stretch;padding-top:0}
+  .hero-bg{object-fit:cover;object-position:72% top}
   .hero-photo::before{background:
-    linear-gradient(180deg, rgba(246,239,226,.96) 0%, rgba(246,239,226,.82) 30%, rgba(246,239,226,.2) 50%, rgba(246,239,226,0) 62%)}
-  .hero-copy{max-width:min(20rem,88%);margin-left:0}
+    linear-gradient(180deg, rgba(246,239,226,0) 40%, rgba(246,239,226,.34) 60%, rgba(246,239,226,.74) 80%, rgba(246,239,226,.97) 100%)}
+  .hero-inner{position:absolute;inset:0;max-width:none;z-index:4;display:flex;flex-direction:column;justify-content:flex-end;padding:0 clamp(20px,5vw,28px) 24px}
+  .hero-copy{max-width:100%;margin:0}
+  .hero h1{font-size:clamp(2.3rem,10.5vw,3.1rem);margin:0 0 1rem}
+  .hero-cta{position:static;flex-direction:column;gap:.5rem;width:100%;margin:0;flex-wrap:nowrap}
+  .hero-cta .btn{width:100%;justify-content:center;padding:12px 18px;font-size:14px}
+  .shape-petala{opacity:.5}
 }
 .hero h1 b{font-weight:800;color:var(--red)}
 .hero h1 em{font-style:normal;font-weight:800;color:var(--ink)}
@@ -146,7 +160,14 @@ header.nav.scrolled{background:color-mix(in srgb,var(--cream) 86%,transparent);b
 .strip-in{display:flex;gap:3.5rem;align-items:center;justify-content:center;flex-wrap:wrap;
   font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ink-mute)}
 .strip-in b{color:var(--red);font-weight:800}
-.strip-in .dot{width:6px;height:6px;background:var(--orange);border-radius:50%}
+.strip-in .dot{width:6px;height:6px;background:var(--orange);border-radius:50%;flex:0 0 auto}
+@media(max-width:760px){
+  .strip{overflow:hidden}
+  .strip-in{flex-wrap:nowrap;justify-content:flex-start;gap:2rem;max-width:none;width:max-content;margin:0;padding:0 0 0 20px}
+  .strip-in.marquee{animation:strip-scroll 22s linear infinite}
+  .strip-in span{flex:0 0 auto;white-space:nowrap}
+}
+@keyframes strip-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* ---------- section base ---------- */
 section{padding:clamp(64px,9vw,120px) 0;position:relative}
@@ -419,6 +440,7 @@ footer{background:var(--red-deep);color:rgba(255,255,255,.8);padding:clamp(52px,
 
 </head>
 <body>
+<button class="hamb" id="hamb" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
 
 <header class="nav" id="nav">
   <div class="wrap nav-in">
@@ -846,6 +868,31 @@ footer{background:var(--red-deep);color:rgba(255,255,255,.8);padding:clamp(52px,
   document.querySelectorAll('.reveal').forEach(function(el,i){
     el.style.transitionDelay=(i%3*70)+'ms';io.observe(el);
   });
+
+  // menu sanduíche (mobile)
+  var hamb=document.getElementById('hamb');
+  if(hamb){
+    var closeMenu=function(){nav.classList.remove('nav-open');hamb.setAttribute('aria-expanded','false');};
+    hamb.addEventListener('click',function(){
+      var open=nav.classList.toggle('nav-open');
+      hamb.setAttribute('aria-expanded',open?'true':'false');
+    });
+    nav.querySelectorAll('.nav-links a').forEach(function(a){a.addEventListener('click',closeMenu);});
+    addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});
+  }
+
+  // faixa de bullets: vira marquee rotativo no mobile
+  var strip=document.querySelector('.strip-in');
+  if(strip){
+    var mqOn=false, orig=strip.innerHTML;
+    var setupMq=function(){
+      var isM=matchMedia('(max-width:760px)').matches;
+      if(isM && !mqOn){strip.innerHTML=orig+orig;strip.classList.add('marquee');mqOn=true;}
+      else if(!isM && mqOn){strip.innerHTML=orig;strip.classList.remove('marquee');mqOn=false;}
+    };
+    setupMq();
+    addEventListener('resize',setupMq,{passive:true});
+  }
 
   // dock das redes: ícone cresce conforme o mouse se aproxima, com mola
   var dock=document.getElementById('dock');
