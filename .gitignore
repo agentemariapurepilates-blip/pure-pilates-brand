@@ -3,3 +3,11 @@
 
 # Ferramentas / config local
 .claude/
+
+# Assets gerados por IA (pesados) — fora do repo
+marca/fotos/
+marca/personagem/
+marca/produtos/
+
+# Config MCP local
+.mcp.json

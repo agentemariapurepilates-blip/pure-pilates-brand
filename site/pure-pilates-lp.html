@@ -95,22 +95,26 @@ header.nav.scrolled{background:color-mix(in srgb,var(--cream) 86%,transparent);b
 /* ---------- hero (foto full-bleed, atrás do menu) ---------- */
 .hero{position:relative;overflow:hidden;margin-top:calc(-1 * var(--nav-h));padding:0}
 .hero-photo{position:relative;width:100%;aspect-ratio:2752/1536;min-height:clamp(500px,62vh,560px);max-height:92vh;
-  display:flex;align-items:center;padding-top:var(--nav-h)}
-.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
-.hero-photo::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  display:flex;align-items:center;padding-top:var(--nav-h);overflow:hidden;
+  background:#39B5B7}
+.hero-shape{position:absolute;z-index:1;pointer-events:none;border:5px solid #E7A94A}
+.shape-petala{width:120vh;height:120vh;max-width:1040px;max-height:1040px;border-radius:50% 50% 0 50%;right:-16vh;top:47%;transform:translateY(-50%)}
+.shape-circle{display:none}
+.hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:right center;z-index:2}
+.hero-photo::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
   background:
-    radial-gradient(72% 96% at -14% 50%, rgba(246,239,226,.94) 0%, rgba(246,239,226,.82) 26%, rgba(246,239,226,.28) 42%, rgba(246,239,226,0) 52%),
+    radial-gradient(74% 98% at -16% 50%, rgba(246,239,226,.92) 0%, rgba(246,239,226,.78) 28%, rgba(246,239,226,.30) 44%, rgba(246,239,226,0) 55%),
     linear-gradient(180deg, rgba(246,239,226,.4) 0%, rgba(246,239,226,0) 12%)}
-.hero-inner{position:relative;z-index:2;width:100%}
-.hero-copy{max-width:min(36rem,58%)}
+.hero-inner{position:relative;z-index:4;width:100%}
+.hero-copy{max-width:min(36rem,52%)}
 .hero h1{font-size:clamp(2.4rem,6.2vw,4.7rem);font-weight:800;color:var(--ink);margin:0 0 1.5rem;letter-spacing:-.035em;line-height:1.03}
 @media(max-width:760px){
   .hero-photo{aspect-ratio:auto;min-height:clamp(520px,82vh,700px);align-items:flex-start}
   .hero-inner{padding-top:clamp(92px,26vw,132px)}
-  .hero-bg{object-position:74% center}
+  .hero-bg{object-position:center bottom}
   .hero-photo::before{background:
-    linear-gradient(180deg, rgba(246,239,226,.95) 0%, rgba(246,239,226,.78) 26%, rgba(246,239,226,.18) 45%, rgba(246,239,226,0) 58%)}
-  .hero-copy{max-width:min(20rem,88%)}
+    linear-gradient(180deg, rgba(246,239,226,.96) 0%, rgba(246,239,226,.82) 30%, rgba(246,239,226,.2) 50%, rgba(246,239,226,0) 62%)}
+  .hero-copy{max-width:min(20rem,88%);margin-left:0}
 }
 .hero h1 b{font-weight:800;color:var(--red)}
 .hero h1 em{font-style:normal;font-weight:800;color:var(--ink)}
@@ -440,7 +444,9 @@ footer{background:var(--red-deep);color:rgba(255,255,255,.8);padding:clamp(52px,
 <!-- HERO -->
 <section class="hero">
   <div class="hero-photo">
-    <img class="hero-bg" src="assets/banner-hero.jpg" alt="Mulher sorrindo alongando os braços para o alto em um estúdio de pilates com luz natural">
+    <div class="hero-shape shape-petala" aria-hidden="true"></div>
+    <div class="hero-shape shape-circle" aria-hidden="true"></div>
+    <img class="hero-bg" src="assets/hero-modelo-cutout.webp" alt="Mulher de cabelos cacheados sorrindo com roupa Pure Bold bordô">
     <div class="wrap hero-inner">
       <div class="hero-copy reveal">
         <h1>A <b>melhor hora</b><br>do seu dia.</h1>
@@ -448,7 +454,7 @@ footer{background:var(--red-deep);color:rgba(255,255,255,.8);padding:clamp(52px,
           <a href="#experimental" class="btn btn-primary btn-lg">Agendar aula experimental
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </a>
-          <a href="#franquia" class="btn btn-ghost btn-lg">Quero uma franquia</a>
+          <a href="#pass" class="btn btn-ghost btn-lg">Contratar um plano Pure Pilates</a>
         </div>
       </div>
     </div>
