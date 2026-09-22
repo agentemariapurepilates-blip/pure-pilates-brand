@@ -2,6 +2,14 @@
 
 Depois de sete tentativas com prompts de 800 palavras, **o curto ganhou**. Prompt longo compete consigo mesmo: cada bloco que eu acrescentava para travar uma coisa fazia outra escapar (a modelo trocava de pessoa, a pose se desfazia, o enquadramento fechava).
 
+## ⛔ A regra das referências
+
+**Só entram como imagem: o aparelho e o painel ripado. Mais nada.**
+
+Mandar a foto da pose como referência **contamina o aparelho**: na v11 o modelo trocou a MetaLife pela cadeira de madeira clara que aparecia na foto da pose, e os logotipos sumiram. Tentar consertar declarando o papel de cada imagem ("a primeira é só a pose") piorou — a v12 saiu como díptico, com dois quadros lado a lado e os logotipos deformados.
+
+**A pose vai só na descrição escrita.** É para isso que serve descrever a pose em detalhe: transformar a foto em texto, e mandar o texto. A v13, com duas referências e a pose só em palavras, saiu correta e em imagem única.
+
 ## Referências — duas, só
 
 1. `fachada/Cenário/WhatsApp Image 2026-09-22 at 10.22.47 (1).jpeg` — a Wunda Chair
