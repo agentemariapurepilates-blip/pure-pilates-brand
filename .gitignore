@@ -11,3 +11,6 @@ marca/produtos/
 
 # Config MCP local
 .mcp.json
+
+# Ensaio da fachada: saídas brutas (pesadas) fora do repo
+fachada/geradas/
