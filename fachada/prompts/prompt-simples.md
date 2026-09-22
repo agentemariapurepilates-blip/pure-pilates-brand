@@ -94,3 +94,9 @@ O que corrigiu:
 A referência atual é um clique de celular de cima, com a cadeira tombada. O modelo não deduz dali como o pedal se articula, e por isso a região dos pés continua errando.
 
 **O que resolveria de vez:** uma foto da Wunda Chair **em pé, de lado, câmera à altura do assento, de frente, em luz boa e fundo limpo**. Uma só, e serve para todas as poses. Vale mais que qualquer ajuste de prompt daqui em diante.
+
+### ✅ Confirmado com o Reformer
+
+A Maria subiu `Reformer_infinity_01.jpg` — foto de catálogo: aparelho em pé, de lado, fundo branco, luz uniforme. O resultado (`fachada-reformer-afundo-v17.png`) saiu **na primeira tentativa**, com os logotipos corretos e legíveis pela primeira vez em toda a sessão: "MetaLife" com o ícone circular e "Linha infinity" com o "fi" ligado. A geometria do aparelho — carrinho, trilhos, apoios de ombro, barra articulada, cordas e molas — fechou sozinha, sem eu precisar descrever peça por peça.
+
+**A lição:** a qualidade da foto do aparelho vale mais que qualquer parágrafo de prompt. Foto de catálogo → uma rodada. Foto de celular tombada → oito rodadas e ainda erra. Vale pedir foto de catálogo de cada aparelho antes de começar o ensaio dele.
