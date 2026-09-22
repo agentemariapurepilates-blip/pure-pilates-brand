@@ -70,3 +70,13 @@ A descrição escrita continua no prompt junto com a imagem — as duas somadas.
 ## Ganho colateral da v10
 
 Foi a primeira em que o **aparelho inteiro** coube no quadro — "MetaLife", "Pure Pilates" e "Linha infinity" visíveis, com a plataforma no chão. Com a pose travada por imagem, o modelo parou de gastar decisão no corpo e resolveu melhor o enquadramento.
+
+## Pose com dois apoios → diga que o aparelho é UM só
+
+Na pose de V invertido (mãos no assento, pés no pedal) eu descrevi "apoio das mãos" e "apoio dos pés" em blocos separados, e o modelo **desenhou duas cadeiras**, uma sob cada apoio, com logotipos inventados em ambas.
+
+O que corrigiu, em uma rodada:
+
+> Há UM ÚNICO aparelho na cena, uma só Wunda Chair. […] o pedal fica logo abaixo e à frente do assento, na parte de baixo do aparelho. Portanto as mãos e os pés dela estão no mesmo móvel, a mesma cadeira: as mãos em cima, os pés embaixo.
+
+**Regra:** sempre que a pose tiver mais de um ponto de contato com o aparelho, declarar explicitamente que é o mesmo móvel e onde cada parte fica em relação à outra. Senão o modelo instancia um objeto por apoio.
