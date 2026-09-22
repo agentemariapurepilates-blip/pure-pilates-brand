@@ -100,3 +100,15 @@ A referência atual é um clique de celular de cima, com a cadeira tombada. O mo
 A Maria subiu `Reformer_infinity_01.jpg` — foto de catálogo: aparelho em pé, de lado, fundo branco, luz uniforme. O resultado (`fachada-reformer-afundo-v17.png`) saiu **na primeira tentativa**, com os logotipos corretos e legíveis pela primeira vez em toda a sessão: "MetaLife" com o ícone circular e "Linha infinity" com o "fi" ligado. A geometria do aparelho — carrinho, trilhos, apoios de ombro, barra articulada, cordas e molas — fechou sozinha, sem eu precisar descrever peça por peça.
 
 **A lição:** a qualidade da foto do aparelho vale mais que qualquer parágrafo de prompt. Foto de catálogo → uma rodada. Foto de celular tombada → oito rodadas e ainda erra. Vale pedir foto de catálogo de cada aparelho antes de começar o ensaio dele.
+
+## Ponto de apoio: nomear a SUPERFÍCIE, não a peça
+
+No afundo do Reformer eu escrevi "o pé da frente está plantado na plataforma plana da ponta". O modelo pôs o pé equilibrado **na quina estreita da lateral de madeira**, em cima do logo "Linha infinity", com o calcanhar no ar.
+
+O que melhorou: descrever a superfície pelo que ela tem em cima, não pelo nome da peça —
+
+> em cima da plataforma plana de madeira da ponta do aparelho — a superfície horizontal larga com a faixa preta antiderrapante, logo além da barra de pés
+
+**Regra:** identificar a superfície de apoio por um detalhe visual único dela (a faixa antiderrapante, o estofado preto, os apoios de ombro redondos). Nome de peça o modelo interpreta solto; detalhe visual ele localiza.
+
+**Ainda aberto:** o calcanhar continua suspenso na borda. Dizer "sola inteira, do calcanhar aos dedos" não bastou.
