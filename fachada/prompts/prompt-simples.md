@@ -41,8 +41,24 @@ O modelo erra "pure" (sai "Pure" com P maiúsculo) e embola a figurinha. Não fe
 
 `fachada/geradas/fachada-modelo-painel-v6-logo-real.png` prova o caminho: o logotipo oficial recomposto por cima, em multiply, com o veio da madeira atravessando a gravação. O script está em `scratchpad/comp4.py` da sessão; a ideia é apagar a área com madeira ladrilhada e aplicar a arte oficial mascarada por luminância.
 
-## ⚠️ A pose não fecha por palavras
+## A pose: imagem trava, palavra só aproxima
 
-Descrever a geometria em prosa levou a pose de ruim para quase certa (v8 → v9), mas **a perna de baixo continua flutuando sem apoio**. O modelo entende a curva do tronco e erra o contato com o assento.
+Trajetória: v8 (pernas boiando no ar) → v9 (prosa com geometria de contato: quase certa, perna de baixo ainda solta) → **v10 (foto da pose como referência: fechou)**.
 
-O que resolve: **passar a foto da pose como terceira referência**. Palavra descreve intenção; imagem trava geometria. A foto precisa estar em `fachada/` como arquivo — imagem colada no chat não chega ao gerador.
+Referência da pose: `fachada/Pose/pose-referencia-sereia.png`, passada como **primeira** das três entradas.
+
+A descrição escrita continua no prompt junto com a imagem — as duas somadas. A leitura que funcionou nomeia os apoios, não a intenção:
+
+- sentada de lado no assento, peso num quadril só
+- perna de cima dobrada, canela inteira deitada sobre o estofado, dedos passando a borda
+- perna de baixo descendo por fora da lateral do assento, joelho quase reto
+- mão de baixo segurando **por cima a barra de madeira do pedal**, braço quase esticado sustentando o tronco
+- tronco em curva de C: cintura do lado do apoio fecha, costelas de cima abrem
+- braço de cima em arco acima e à frente da cabeça, mão aberta, palma para baixo
+- cabeça para trás, queixo levantado, olhar além da mão
+
+**O que ainda escapa:** o modelo troca a mão de apoio da barra do pedal para a própria perna. É o último ponto de contato a travar.
+
+## Ganho colateral da v10
+
+Foi a primeira em que o **aparelho inteiro** coube no quadro — "MetaLife", "Pure Pilates" e "Linha infinity" visíveis, com a plataforma no chão. Com a pose travada por imagem, o modelo parou de gastar decisão no corpo e resolveu melhor o enquadramento.
