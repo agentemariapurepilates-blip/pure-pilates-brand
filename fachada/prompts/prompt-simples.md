@@ -80,3 +80,17 @@ O que corrigiu, em uma rodada:
 > Há UM ÚNICO aparelho na cena, uma só Wunda Chair. […] o pedal fica logo abaixo e à frente do assento, na parte de baixo do aparelho. Portanto as mãos e os pés dela estão no mesmo móvel, a mesma cadeira: as mãos em cima, os pés embaixo.
 
 **Regra:** sempre que a pose tiver mais de um ponto de contato com o aparelho, declarar explicitamente que é o mesmo móvel e onde cada parte fica em relação à outra. Senão o modelo instancia um objeto por apoio.
+
+## Descrever a geometria do aparelho, não só nomear as peças
+
+Na pose de V invertido o modelo montou **duas pranchas de madeira empilhadas** — uma inclinada segurando um pad preto, outra plana no chão — sem dobradiça ligando as duas. Causa: na foto de referência a cadeira está tombada num ângulo alto, e o pedal e a base aparecem os dois como planos de madeira perto do chão. O modelo copiou os dois sem entender a relação.
+
+O que corrigiu:
+
+> A parte de baixo do aparelho tem duas peças, e só essas duas: primeiro, a base de madeira plana apoiada no chão, que é o pé do aparelho; segundo, o pedal, uma barra estofada preta larga e comprida, presa por dobradiças à frente do corpo da cadeira logo acima dessa base e ligada a ele por molas de aço. Não existe nenhuma outra plataforma, prancha ou degrau.
+
+## 📸 O gargalo agora é a foto do aparelho
+
+A referência atual é um clique de celular de cima, com a cadeira tombada. O modelo não deduz dali como o pedal se articula, e por isso a região dos pés continua errando.
+
+**O que resolveria de vez:** uma foto da Wunda Chair **em pé, de lado, câmera à altura do assento, de frente, em luz boa e fundo limpo**. Uma só, e serve para todas as poses. Vale mais que qualquer ajuste de prompt daqui em diante.
