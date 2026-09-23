@@ -112,3 +112,17 @@ O que melhorou: descrever a superfície pelo que ela tem em cima, não pelo nome
 **Regra:** identificar a superfície de apoio por um detalhe visual único dela (a faixa antiderrapante, o estofado preto, os apoios de ombro redondos). Nome de peça o modelo interpreta solto; detalhe visual ele localiza.
 
 **Ainda aberto:** o calcanhar continua suspenso na borda. Dizer "sola inteira, do calcanhar aos dedos" não bastou.
+
+## ⛔ O prompt volta a inchar sozinho — cortar
+
+Cada correção vira um parágrafo novo e nenhum sai. No Cadillac o bloco do aparelho passou de uma linha para ~120 palavras (torres, molas, alças, ordem e grafia dos três logotipos) — e foi nessa rodada que os três logotipos saíram **piores**: "Linha infinity" virou o símbolo ∞, "Pure" virou script cursivo, o ícone do MetaLife virou uma folha.
+
+Com o mesmo par de referências e a mesma pose, o prompt enxuto devolveu os três corretos.
+
+**Aparelho e cenário: uma linha cada, apontando para a foto.**
+
+> O aparelho é exatamente o da foto anexada, com os mesmos logotipos na lateral de madeira.
+>
+> Numa das paredes há o painel de ripas verticais da foto anexada, com o "p" vermelho retroiluminado.
+
+Só ganham detalhe escrito o que **não tem foto**: modelo, pose, luz e pele. Ao corrigir, **trocar** o trecho — nunca acrescentar. Passou de ~250 palavras, está inchado.
