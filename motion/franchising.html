@@ -580,7 +580,7 @@ const CENAS = [
    A música roda a 100 BPM (1 tempo = 0,6s), o mesmo PASSO do texto:
    cada frase que sobe cai em cima de um tempo da batida.
 ================================================================== */
-let ac=null, bus=null, busMus=null, busFx=null, agenda=null;
+let ac=null, bus=null, busMus=null, busFx=null;
 
 function audioOn(){
   if(ac) return;
@@ -646,20 +646,24 @@ const AC_={Am:[220.00,261.63,329.63], F:[174.61,220.00,261.63],
            C:[261.63,329.63,392.00],  G:[196.00,246.94,392.00]};
 const BX={Am:110.00,F:87.31,C:130.81,G:98.00};
 const CICLO=["Am","F","C","G"];
+/* melodia: 4 notas por compasso, nas posições 0 · 1,5 · 2,5 · 3,5 */
+const MEL={ Am:[440.00,523.25,659.25,523.25], F:[349.23,440.00,523.25,440.00],
+            C:[523.25,659.25,587.33,493.88], G:[493.88,587.33,392.00,493.88] };
+const POS=[0,1.5,2.5,3.5];
 
 /* que camadas tocam em cada compasso (0 a 41) */
 function arranjo(c){
-  if(c<4)  return {sub:1,kick:.55,hat:0,pad:.75,arp:0}; // abertura: pulso grave, no tempo do coração
-  if(c<9)  return {sub:1,kick:1,hat:0,pad:1, arp:0};   // marca
-  if(c<14) return {sub:1,kick:1,hat:1,pad:1, arp:0};   // marketing
-  if(c<15) return {sub:1,kick:0,hat:0,pad:1, arp:0};   // cartela: abre espaço
-  if(c<20) return {sub:1,kick:1,hat:1,pad:1, arp:.7};  // vitória
-  if(c<25) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // tecnologia
-  if(c<29) return {sub:1,kick:1,hat:1,pad:1, arp:.8};  // metalife
-  if(c<34) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // wellhub
-  if(c<38) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // funil: build
-  if(c<39) return {sub:1,kick:0,hat:0,pad:1, arp:0};   // cartela final
-  return    {sub:1,kick:0,hat:0,pad:1, arp:.5};        // fecho: resolve
+  if(c<4)  return {sub:1,kick:.55,hat:0,pad:.75,arp:0,  lead:0};  // abertura: pulso grave
+  if(c<9)  return {sub:1,kick:1,hat:0,pad:1, arp:0,  lead:.9}; // marca
+  if(c<14) return {sub:1,kick:1,hat:1,pad:1, arp:0,  lead:1};  // marketing
+  if(c<15) return {sub:1,kick:0,hat:0,pad:1, arp:0,  lead:.5}; // respiro
+  if(c<20) return {sub:1,kick:1,hat:1,pad:1, arp:.7, lead:1};  // vitória
+  if(c<25) return {sub:1,kick:1,hat:1,pad:1, arp:1,  lead:1};  // tecnologia
+  if(c<29) return {sub:1,kick:1,hat:1,pad:1, arp:.8, lead:1};  // metalife
+  if(c<34) return {sub:1,kick:1,hat:1,pad:1, arp:1,  lead:1};  // wellhub
+  if(c<38) return {sub:1,kick:1,hat:1,pad:1, arp:1,  lead:1.15}; // funil
+  if(c<39) return {sub:1,kick:0,hat:0,pad:1, arp:0,  lead:.7}; // cartela final
+  return    {sub:1,kick:0,hat:0,pad:1, arp:.5, lead:.8}; // fecho
 }
 
 function nota(tipo,t,f,dur,vol){
@@ -669,7 +673,7 @@ function nota(tipo,t,f,dur,vol){
     g.gain.linearRampToValueAtTime(vol,t+.02);
     g.gain.setValueAtTime(vol,t+dur-.12);
     g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); fontesMus.push(o); return;
   }
   if(tipo==="pad"){ o.type="sawtooth"; o.frequency.value=f;
     const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900; lp.Q.value=.6;
@@ -677,13 +681,20 @@ function nota(tipo,t,f,dur,vol){
     g.gain.linearRampToValueAtTime(vol,t+.5);
     g.gain.setValueAtTime(vol,t+dur-.5);
     g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(lp); lp.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+    o.connect(lp); lp.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); fontesMus.push(o); return;
+  }
+  if(tipo==="lead"){ o.type="triangle"; o.frequency.value=f;
+    const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=3200;
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+.03);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(lp); lp.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); fontesMus.push(o); return;
   }
   if(tipo==="arp"){ o.type="triangle"; o.frequency.value=f;
     const g=ac.createGain(); g.gain.setValueAtTime(0,t);
     g.gain.linearRampToValueAtTime(vol,t+.01);
     g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); fontesMus.push(o); return;
   }
 }
 function kick(t,vol){
@@ -691,13 +702,13 @@ function kick(t,vol){
   o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(45,t+.11);
   const g=ac.createGain(); g.gain.setValueAtTime(vol,t);
   g.gain.exponentialRampToValueAtTime(.0001,t+.32);
-  o.connect(g); g.connect(busMus); o.start(t); o.stop(t+.36);
+  o.connect(g); g.connect(busMus); o.start(t); o.stop(t+.36); fontesMus.push(o);
 }
 function hat(t,vol){
   const s=ruido(.06), hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=7000;
   const g=ac.createGain(); g.gain.setValueAtTime(vol,t);
   g.gain.exponentialRampToValueAtTime(.0001,t+.055);
-  s.connect(hp); hp.connect(g); g.connect(busMus); s.start(t); s.stop(t+.08);
+  s.connect(hp); hp.connect(g); g.connect(busMus); s.start(t); s.stop(t+.08); fontesMus.push(s);
 }
 
 /* agenda um compasso inteiro */
@@ -709,24 +720,22 @@ function compasso(c, t0){
   if(a.kick) [0,2].forEach(b=>kick(t0+b*T,.55*a.kick));
   if(a.kick && c>=20) kick(t0+3.5*T,.3);
   if(a.hat) for(let b=0;b<8;b++) hat(t0+b*T/2, (b%2? .11: .06)*a.hat);
+  if(a.lead){ const mel=MEL[ac_];
+    POS.forEach((b,k)=>nota("lead", t0+b*T, mel[k], k===3?.9:.55, .13*a.lead)); }
   if(a.arp){ const seq=[tri[0],tri[1],tri[2],tri[1],tri[2]*2,tri[1],tri[2],tri[0]];
     seq.forEach((f,i)=>nota("arp", t0+i*T/2, f, .34, .085*a.arp)); }
 }
 
-/* agendador com lookahead: mantém ~400ms de música sempre pronta */
-let compassoAtual=0, tInicioMus=0;
+/* agenda o filme inteiro de uma vez: sem intervalo que possa não disparar */
+let fontesMus=[];
 function musicaStart(){
-  compassoAtual=0; tInicioMus=ac.currentTime+.08;
-  clearInterval(agenda);
-  agenda=setInterval(()=>{
-    while(tInicioMus + compassoAtual*COMPASSO < ac.currentTime + .4 && compassoAtual < 44){
-      compasso(compassoAtual, tInicioMus + compassoAtual*COMPASSO);
-      compassoAtual++;
-    }
-    if(compassoAtual>=44) clearInterval(agenda);
-  }, 60);
+  musicaStop();
+  const t0=ac.currentTime+.12;
+  for(let c=0;c<44;c++) compasso(c, t0 + c*COMPASSO);
 }
-function musicaStop(){ clearInterval(agenda); }
+function musicaStop(){
+  fontesMus.splice(0).forEach(o=>{ try{o.stop();}catch(e){} });
+}
 
 /* ---------------- efeitos por cena ---------------- */
 const P2=[[.35,"whoosh"],[.77,"thock"],[.97,"whoosh"],[1.39,"thock"]];
