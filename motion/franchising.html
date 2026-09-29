@@ -204,6 +204,15 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
   100%{opacity:0;transform:translate(150px,10px) scale(.6)}
 }
 
+/* ================= GRADE DE UNIDADES ================= */
+.grade-un{display:grid;grid-template-columns:repeat(8,1fr);gap:15px;width:540px;
+  transform:rotateX(54deg) rotateZ(-30deg);transform-style:preserve-3d}
+.grade-un i{display:block;aspect-ratio:1;border-radius:9px;background:#fff;
+  box-shadow:0 10px 18px rgba(80,55,40,.16);transform:scale(0);
+  animation:pipocaUn .5s cubic-bezier(.34,1.56,.64,1) forwards}
+.grade-un i.on{background:var(--vermelho-vivo);box-shadow:0 12px 22px rgba(190,25,40,.35)}
+@keyframes pipocaUn{to{transform:scale(1)}}
+
 /* ================= FUNIL ================= */
 .barras{display:flex;align-items:flex-end;gap:38px;height:340px}
 .barra{width:112px;border-radius:12px 12px 4px 4px;transform-origin:bottom;transform:scaleY(0);
@@ -424,16 +433,22 @@ const dig = (txt,atraso=.3,vel=26) =>
 
 /* fundo de vídeo — os takes tocam em sequência, um depois do outro,
    em câmera lenta. Nada de loop: corte curto repetindo vira soluço. */
-const vfundo = (takes, rate=.55, atraso=0) => `
+const vfundo = (takes, rate=1, atraso=0) => `
   <div class="video-fundo" data-rate="${rate}"${atraso?` style="opacity:0;animation:aparece 1.1s ease ${atraso}s forwards"`:""}>
     ${takes.map(a=>`<video src="cortes/${a}.mp4" muted playsinline preload="auto"></video>`).join("")}
+  </div>`;
+
+const unidades = () => `
+  <div class="grade-un">
+    ${Array.from({length:48},(_,i)=>
+      `<i class="${[5,11,18,23,30,36,43].includes(i)?"on":""}" style="animation-delay:${(.35+i*.033).toFixed(2)}s"></i>`).join("")}
   </div>`;
 
 const CENAS = [
 
 /* ---------------- ABERTURA ---------------- */
-{ dur:9, cls:"bg-preto", html:`
-  ${vfundo(["take06","take04"],.55,5.0)}
+{ dur:9.4, cls:"bg-preto", html:`
+  ${vfundo(["take06","take04","take05"],1,5.0)}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center">
     <div class="brasa" style="left:20%;animation:pulsa 2.4s ease-in-out infinite, some 1.2s ease 5s forwards"></div>
     ${Array.from({length:14},(_,i)=>`<div class="fagulha" style="left:${19+Math.random()*10}%;top:${52+Math.random()*10}%;animation-delay:${i*.22}s"></div>`).join("")}
@@ -450,25 +465,27 @@ const CENAS = [
   <style>.bg-preto .manchete{color:#fff;max-width:none}
   @keyframes some{to{opacity:0}}</style>`},
 
-/* ---------------- A MARCA — insert no lugar do mapa ---------------- */
-{ dur:13, cls:"bg-preto", html:`
-  ${vfundo(["take10","take07","take03","take05"])}
+/* ---------------- A MARCA · insert ---------------- */
+{ dur:5.8, cls:"bg-preto", html:`
+  ${vfundo(["take10","take07","take03"])}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 130px">
-    <div class="texto placa" style="min-height:560px;width:100%;max-width:58%">
-      ${tela(`<h1 class="manchete sobre-video">
-        <span class="linha"><span style="animation-delay:.35s">VOCÊ NÃO</span></span>
-        <span class="linha"><span style="animation-delay:.97s">COMEÇA DO ZERO</span></span></h1>`, .1, 3.8)}
-      ${tela(`
-        <p class="frase sobre-video" style="color:#fff;max-width:20ch">${dig("Começa com suporte, apoio do início ao fim e uma marca reconhecida.",.35,25)}</p>
-        <div class="contador tela-txt sobre-video" data-in="7.6" style="color:#fff;margin-top:44px;font-size:56px">
-          <span data-conta="492" data-atraso="7.8">0</span>
-          <span style="font-size:20px;font-weight:800;letter-spacing:.2em;opacity:.8">UNIDADES</span>
-          <span style="margin:0 .16em;opacity:.5">·</span>
-          <span data-conta="89" data-atraso="7.8">0</span>
-          <span style="font-size:20px;font-weight:800;letter-spacing:.2em;opacity:.8">CIDADES</span>
-        </div>`, 4.2)}
-    </div>
+    <h1 class="manchete sobre-video placa">
+      <span class="linha"><span style="animation-delay:.4s">VOCÊ NÃO</span></span>
+      <span class="linha"><span style="animation-delay:1.02s">COMEÇA DO ZERO</span></span></h1>
   </div>`},
+
+/* ---------------- A MARCA · tela 3D ---------------- */
+{ dur:9.5, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto">
+    <p class="frase">${dig("Começa com suporte, apoio do início ao fim e uma marca reconhecida.",.3,25)}</p>
+    <div class="contador tela-txt" data-in="3.6" style="margin-top:44px;font-size:56px">
+      <span data-conta="492" data-atraso="3.8">0</span>
+      <span style="font-size:20px;font-weight:800;letter-spacing:.2em;color:#9A918C">UNIDADES</span>
+      <span class="de" style="margin:0 .16em">·</span>
+      <span data-conta="89" data-atraso="3.8">0</span>
+      <span style="font-size:20px;font-weight:800;letter-spacing:.2em;color:#9A918C">CIDADES</span>
+    </div>
+  </div><div class="visual">${unidades()}</div></div>`},
 
 /* ---------------- MARKETING — 3D ---------------- */
 { dur:11.5, cls:"bg-creme", html:`
@@ -531,8 +548,8 @@ const CENAS = [
   </div><div class="visual">${repasse()}</div></div>`},
 
 /* ---------------- O FUNIL — insert, sem 3D ---------------- */
-{ dur:9.5, cls:"bg-preto", html:`
-  ${vfundo(["take09","take02","take11","take08"])}
+{ dur:6.6, cls:"bg-preto", html:`
+  ${vfundo(["take09","take02","take11","take08","take01"])}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 130px">
     <h1 class="manchete media sobre-video placa">
       <span class="linha"><span style="animation-delay:.35s">A GENTE NÃO QUER</span></span>
@@ -715,22 +732,24 @@ const P2=[[.35,"whoosh"],[.77,"thock"],[.97,"whoosh"],[1.39,"thock"]];
 const P4=[...P2,[1.59,"whoosh"],[2.01,"thock"],[2.21,"whoosh"],[2.63,"thock"]];
 const digTicks=(ini,n,passo=.13)=>Array.from({length:n},(_,i)=>[ini+i*passo,"tick"]);
 const SONS = [
- /* 0 abertura */ [[.1,"coracao"],[1.3,"coracao"],[2.5,"coracao"],
-                   [.35,"whoosh"],[.8,"thock",90],[.97,"whoosh"],[1.42,"thock",90],
-                   [2.6,"riser",1.5],[3.3,"whoosh",1.3],[3.75,"thock",70],
-                   [3.92,"whoosh",1.3],[4.45,"boom"],[5.0,"boom"]],
- /* 1 marca */    [...P2, ...digTicks(4.6,14,.12), [7.8,"shimmer"]],
- /* 2 marketing */[...P4, [.35,"tick"],[.5,"tick"],[.65,"tick"],[.8,"tick"],[.95,"tick"],
-                   [1.6,"shimmer"],[2.1,"pop",900],[5.9,"whoosh",.8]],
- /* 3 vitória */  [...P2, [1.4,"tick"],[2.6,"tick"],[4.0,"tick"],[5.2,"tick"],[7.0,"pop",980],[5.3,"whoosh",.8]],
- /* 4 tecnologia*/[...P4, [.4,"pop",520],[.7,"snap"],[1.35,"snap"],[2.0,"snap"],[6.3,"whoosh",.8]],
- /* 5 metalife */ [...P2, [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
-                   [2.4,"snap"],[2.8,"snap"],[3.15,"snap"],[3.5,"thock",80]],
- /* 6 wellhub */  [...P2, [.4,"tick"],[1.0,"tick"], ...Array.from({length:7},(_,i)=>[1.1+i*.22,"shimmer"]),
-                   ...digTicks(5.9,18,.12)],
- /* 7 funil */    [...P2, [1.9,"whoosh"],[2.32,"thock"],[2.52,"whoosh"],[2.94,"thock",80]],
- /* 8 cartela */  [[.05,"riser",.8],[.85,"boom"]],
- /* 9 fecho */    [[.3,"pop",880],[1.2,"shimmer"]],
+ /* 0 abertura */   [[.1,"coracao"],[1.3,"coracao"],[2.5,"coracao"],
+                     [.35,"whoosh"],[.8,"thock",90],[.97,"whoosh"],[1.42,"thock",90],
+                     [2.6,"riser",1.5],[3.3,"whoosh",1.3],[3.75,"thock",70],
+                     [3.92,"whoosh",1.3],[4.45,"boom"],[5.0,"boom"]],
+ /* 1 marca vídeo */[[.4,"whoosh"],[.85,"thock",95],[1.02,"whoosh"],[1.47,"thock",95]],
+ /* 2 marca 3D */   [...digTicks(.5,14,.12), [3.8,"shimmer"],
+                     ...Array.from({length:22},(_,i)=>[.4+i*.09,"pop",620+i*26])],
+ /* 3 marketing */  [...P4, [.35,"tick"],[.5,"tick"],[.65,"tick"],[.8,"tick"],[.95,"tick"],
+                     [1.6,"shimmer"],[2.1,"pop",900],[5.9,"whoosh",.8]],
+ /* 4 vitória */    [...P2, [1.4,"tick"],[2.6,"tick"],[4.0,"tick"],[5.2,"tick"],[7.0,"pop",980],[5.3,"whoosh",.8]],
+ /* 5 tecnologia */ [...P4, [.4,"pop",520],[.7,"snap"],[1.35,"snap"],[2.0,"snap"],[6.3,"whoosh",.8]],
+ /* 6 metalife */   [...P2, [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
+                     [2.4,"snap"],[2.8,"snap"],[3.15,"snap"],[3.5,"thock",80]],
+ /* 7 wellhub */    [...P2, [.4,"tick"],[1.0,"tick"], ...Array.from({length:7},(_,i)=>[1.1+i*.22,"shimmer"]),
+                     ...digTicks(5.9,18,.12)],
+ /* 8 funil */      [...P2, [1.9,"whoosh"],[2.32,"thock"],[2.52,"whoosh"],[2.94,"thock",80]],
+ /* 9 cartela */    [[.05,"riser",.8],[.85,"boom"]],
+ /* 10 fecho */     [[.3,"pop",880],[1.2,"shimmer"]],
 ];
 function tocaCena(n){
   if(!ac) return;
@@ -796,7 +815,7 @@ function videos(el){
   el.querySelectorAll(".video-fundo").forEach(cx=>{
     const vs=[...cx.querySelectorAll("video")];
     if(!vs.length) return;
-    const rate=+cx.dataset.rate||.55;
+    const rate=+cx.dataset.rate||1;
     vs.forEach(v=>{ v.playbackRate=rate; v.muted=true; v.loop=false; v.style.opacity="0"; });
     (function toca(k){
       const v=vs[k%vs.length];
