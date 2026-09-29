@@ -122,12 +122,12 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
 @keyframes desenha{to{stroke-dashoffset:0}}
 .no-luz{position:absolute;right:6px;top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;
   background:radial-gradient(circle,#fff,#FFD08A 40%,rgba(255,170,60,0) 72%);
-  transform:scale(0);animation:pipoca2 .6s cubic-bezier(.34,1.56,.64,1) 1.5s forwards}
+  transform:scale(0);animation:pipoca2 .6s cubic-bezier(.34,1.56,.64,1) 4.2s forwards}
 @keyframes pipoca2{to{transform:scale(1)}}
 .balao-wa{position:absolute;right:-20px;bottom:14%;background:#DCF8C6;border-radius:16px;
   border-bottom-right-radius:4px;padding:14px 18px;font-size:18px;color:#2B3A2E;
   box-shadow:0 18px 32px rgba(80,55,40,.16);opacity:0;transform:translateY(16px);
-  animation:aparece2 .5s ease 2s forwards}
+  animation:aparece2 .5s ease 6.4s forwards}
 @keyframes aparece2{to{opacity:1;transform:translateY(0)}}
 
 /* ================= FONE / CHAT ================= */
@@ -345,10 +345,10 @@ const canais = () => `
   <div class="canais">
     <svg class="fios" viewBox="0 0 640 520" preserveAspectRatio="none">
       ${CANAIS.map(([,,cor,,dy],i)=>`<path d="M270 ${260+dy} C 400 ${260+dy}, 430 260, 560 260"
-        stroke="${cor}" opacity=".55" style="animation-delay:${(.7+i*.12).toFixed(2)}s"/>`).join("")}
+        stroke="${cor}" opacity=".55" style="animation-delay:${(.85+i*.62).toFixed(2)}s"/>`).join("")}
     </svg>
     ${CANAIS.map(([nome,tipo,cor,dx,dy],i)=>`
-      <div class="canal" style="left:${dx}px;top:calc(50% + ${dy}px - 33px);animation-delay:${(.35+i*.14).toFixed(2)}s">
+      <div class="canal" style="left:${dx}px;top:calc(50% + ${dy}px - 33px);animation-delay:${(.4+i*.62).toFixed(2)}s">
         <span class="dot" style="background:${cor}"></span>
         <span><span class="nome">${nome}</span><br><span class="tipo">${tipo}</span></span>
       </div>`).join("")}
@@ -586,8 +586,8 @@ function audioOn(){
   if(ac) return;
   ac = new (window.AudioContext||window.webkitAudioContext)();
   bus    = ac.createGain(); bus.gain.value=.9;    bus.connect(ac.destination);
-  busMus = ac.createGain(); busMus.gain.value=.55; busMus.connect(bus);
-  busFx  = ac.createGain(); busFx.gain.value=.5;  busFx.connect(bus);
+  busMus = ac.createGain(); busMus.gain.value=.95; busMus.connect(bus);
+  busFx  = ac.createGain(); busFx.gain.value=.42;  busFx.connect(bus);
 }
 const ruido = dur => {
   const n=Math.floor(ac.sampleRate*dur), b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
@@ -649,7 +649,7 @@ const CICLO=["Am","F","C","G"];
 
 /* que camadas tocam em cada compasso (0 a 41) */
 function arranjo(c){
-  if(c<4)  return {sub:1,kick:0,hat:0,pad:.5,arp:0};   // abertura: só tensão
+  if(c<4)  return {sub:1,kick:.55,hat:0,pad:.75,arp:0}; // abertura: pulso grave, no tempo do coração
   if(c<9)  return {sub:1,kick:1,hat:0,pad:1, arp:0};   // marca
   if(c<14) return {sub:1,kick:1,hat:1,pad:1, arp:0};   // marketing
   if(c<15) return {sub:1,kick:0,hat:0,pad:1, arp:0};   // cartela: abre espaço
@@ -703,13 +703,14 @@ function hat(t,vol){
 /* agenda um compasso inteiro */
 function compasso(c, t0){
   const a=arranjo(c), ac_=CICLO[c%4], tri=AC_[ac_], baixo=BX[ac_];
-  if(a.sub) nota("sub", t0, baixo, COMPASSO*.95, .22*a.sub);
-  if(a.pad) tri.forEach(f=>nota("pad", t0, f, COMPASSO*.98, .05*a.pad));
+  if(a.sub) nota("sub", t0, baixo, COMPASSO*.95, .38*a.sub);
+  if(a.sub) nota("sub", t0, baixo*2, COMPASSO*.95, .12*a.sub);
+  if(a.pad) tri.forEach(f=>nota("pad", t0, f, COMPASSO*.98, .10*a.pad));
   if(a.kick) [0,2].forEach(b=>kick(t0+b*T,.55*a.kick));
   if(a.kick && c>=20) kick(t0+3.5*T,.3);
-  if(a.hat) for(let b=0;b<8;b++) hat(t0+b*T/2, (b%2? .07: .04)*a.hat);
+  if(a.hat) for(let b=0;b<8;b++) hat(t0+b*T/2, (b%2? .11: .06)*a.hat);
   if(a.arp){ const seq=[tri[0],tri[1],tri[2],tri[1],tri[2]*2,tri[1],tri[2],tri[0]];
-    seq.forEach((f,i)=>nota("arp", t0+i*T/2, f, .34, .055*a.arp)); }
+    seq.forEach((f,i)=>nota("arp", t0+i*T/2, f, .34, .085*a.arp)); }
 }
 
 /* agendador com lookahead: mantém ~400ms de música sempre pronta */
@@ -739,8 +740,8 @@ const SONS = [
  /* 1 marca vídeo */[[.4,"whoosh"],[.85,"thock",95],[1.02,"whoosh"],[1.47,"thock",95]],
  /* 2 marca 3D */   [...digTicks(.5,14,.12), [3.8,"shimmer"],
                      ...Array.from({length:25},(_,i)=>[.9+i*.075,"pop",640+i*22])],
- /* 3 marketing */  [...P4, [.35,"tick"],[.5,"tick"],[.65,"tick"],[.8,"tick"],[.95,"tick"],
-                     [1.6,"shimmer"],[2.1,"pop",900],[5.9,"whoosh",.8]],
+ /* 3 marketing */  [...P4, [.4,"tick"],[1.02,"tick"],[1.64,"tick"],[2.26,"tick"],[2.88,"tick"],
+                     [4.2,"shimmer"],[4.4,"pop",900],[5.9,"whoosh",.8],[6.4,"pop",980]],
  /* 4 vitória */    [...P2, [1.4,"tick"],[2.6,"tick"],[4.0,"tick"],[5.2,"tick"],[7.0,"pop",980],[5.3,"whoosh",.8]],
  /* 5 tecnologia */ [...P4, [.4,"pop",520],[.7,"snap"],[1.35,"snap"],[2.0,"snap"],[6.3,"whoosh",.8]],
  /* 6 metalife */   [...P2, [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
@@ -845,7 +846,8 @@ function tick(){ if(!rodando)return;
   relogio.textContent=`${Math.min((performance.now()-t0)/1000,TOTAL).toFixed(1)}s / ${TOTAL.toFixed(1)}s`;
   requestAnimationFrame(tick); }
 function play(){ if(rodando)return; rodando=true; btPlay.textContent="⏸ Rodando";
-  audioOn(); if(ac.state==="suspended") ac.resume(); musicaStart();
+  audioOn();
+  if(ac.state==="suspended") ac.resume().then(musicaStart); else musicaStart();
   t0=performance.now()-ate(i)*1000; mostra(i); tick(); }
 function pausa(){ limpar(); musicaStop(); rodando=false; btPlay.textContent="▶ Play"; }
 function reset(){ limpar(); musicaStop(); rodando=false; i=0;
