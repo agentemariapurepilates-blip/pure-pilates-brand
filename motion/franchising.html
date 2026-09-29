@@ -32,7 +32,8 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
 
 /* ---------- inserts de vídeo: sempre com texto por cima ---------- */
 .video-fundo{position:absolute;inset:0;overflow:hidden;z-index:0}
-.video-fundo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.video-fundo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .5s ease}
 .video-fundo video.solo{opacity:1}
 .video-fundo video.seq{opacity:0;animation:vidFade 2.5s ease forwards}
 @keyframes vidFade{0%{opacity:0}10%{opacity:1}78%{opacity:1}100%{opacity:0}}
@@ -415,21 +416,18 @@ const dig = (txt,atraso=.3,vel=26) =>
   `<span data-digita="${txt}" data-atraso="${atraso}" data-vel="${vel}"></span>`;
 
 
-/* fundo de vídeo — aparece limpo; quem trata legibilidade é a tipografia */
-const vfundo = (takes, veu=null, atraso=0) => `
-  <div class="video-fundo"${atraso?` style="opacity:0;animation:aparece 1.1s ease ${atraso}s forwards"`:""}>
-    ${takes.length===1
-      ? `<video class="solo" src="cortes/${takes[0]}.mp4" muted playsinline loop></video>`
-      : takes.map((a,i)=>`<video class="seq" src="cortes/${a}.mp4" muted playsinline loop
-           style="animation-delay:${(i*2.4).toFixed(2)}s"></video>`).join("")}
-    ${veu?`<div class="veu" style="background:${veu}"></div>`:""}
+/* fundo de vídeo — os takes tocam em sequência, um depois do outro,
+   em câmera lenta. Nada de loop: corte curto repetindo vira soluço. */
+const vfundo = (takes, rate=.55, atraso=0) => `
+  <div class="video-fundo" data-rate="${rate}"${atraso?` style="opacity:0;animation:aparece 1.1s ease ${atraso}s forwards"`:""}>
+    ${takes.map(a=>`<video src="cortes/${a}.mp4" muted playsinline preload="auto"></video>`).join("")}
   </div>`;
 
 const CENAS = [
 
 /* ---------------- ABERTURA ---------------- */
 { dur:9, cls:"bg-preto", html:`
-  ${vfundo(["take06"],null,5.0)}
+  ${vfundo(["take06","take04"],.55,5.0)}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center">
     <div class="brasa" style="left:20%;animation:pulsa 2.4s ease-in-out infinite, some 1.2s ease 5s forwards"></div>
     ${Array.from({length:14},(_,i)=>`<div class="fagulha" style="left:${19+Math.random()*10}%;top:${52+Math.random()*10}%;animation-delay:${i*.22}s"></div>`).join("")}
@@ -448,7 +446,7 @@ const CENAS = [
 
 /* ---------------- A MARCA — insert no lugar do mapa ---------------- */
 { dur:13, cls:"bg-preto", html:`
-  ${vfundo(["take10"])}
+  ${vfundo(["take10","take07","take03","take05"])}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 130px">
     <div class="texto placa" style="min-height:560px;width:100%;max-width:58%">
       ${tela(`<h1 class="manchete sobre-video">
@@ -528,7 +526,7 @@ const CENAS = [
 
 /* ---------------- O FUNIL — insert, sem 3D ---------------- */
 { dur:9.5, cls:"bg-preto", html:`
-  ${vfundo(["take09"])}
+  ${vfundo(["take09","take02","take11","take08"])}
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 130px">
     <h1 class="manchete media sobre-video placa">
       <span class="linha"><span style="animation-delay:.35s">A GENTE NÃO QUER</span></span>
@@ -787,10 +785,19 @@ function contadores(el){
   });
 }
 
-/* vídeos de insert: começam do zero e sempre com texto por cima */
+/* inserts: cada take toca uma vez e passa a vez para o próximo */
 function videos(el){
-  el.querySelectorAll("video").forEach(v=>{
-    v.currentTime=0; v.muted=true; v.play().catch(()=>{});
+  el.querySelectorAll(".video-fundo").forEach(cx=>{
+    const vs=[...cx.querySelectorAll("video")];
+    if(!vs.length) return;
+    const rate=+cx.dataset.rate||.55;
+    vs.forEach(v=>{ v.playbackRate=rate; v.muted=true; v.loop=false; v.style.opacity="0"; });
+    (function toca(k){
+      const v=vs[k%vs.length];
+      v.currentTime=0; v.style.opacity="1";
+      v.play().then(()=>{v.playbackRate=rate;}).catch(()=>{});
+      v.onended=()=>{ v.onended=null; toca(k+1); agendar(()=>{v.style.opacity="0";},480); };
+    })(0);
   });
 }
 
