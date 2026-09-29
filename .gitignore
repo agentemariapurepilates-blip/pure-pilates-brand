@@ -14,3 +14,8 @@ marca/produtos/
 
 # Ensaio da fachada: saídas brutas (pesadas) fora do repo
 fachada/geradas/
+
+# Takes brutos e vídeos de referência (pesados) — fora do repo
+motion/takes/
+*.mov
+*.mp4

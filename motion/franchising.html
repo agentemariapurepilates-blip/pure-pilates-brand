@@ -222,6 +222,7 @@ body.gravando #hud{display:none}
   <button id="btPlay">▶ Play</button>
   <button id="btReset">⟲ Reiniciar</button>
   <button id="btLimpo">Modo gravação</button>
+  <button id="btSom">🔊 Som</button>
   <span class="t" id="relogio"></span>
 </div>
 
@@ -243,17 +244,32 @@ const fimDe = (linhas, ini=.25) => ini + linhas.length*PASSO + .25;
 const sub = (t,d) => `<p class="sub fade" style="animation-delay:${d.toFixed(2)}s">${t}</p>`;
 const rot = t => `<div class="rotulo fade" style="animation-delay:.05s">${t}</div>`;
 
-/* --- mapa do Brasil simplificado + pins --- */
-const BR_PATH = "M120 58 L170 38 L215 44 L246 32 L268 48 L262 74 L292 86 L316 118 L340 150 L348 186 "+
-                "L332 214 L322 246 L300 268 L288 300 L268 330 L240 356 L210 372 L182 366 L168 340 "+
-                "L146 318 L128 286 L122 250 L100 228 L78 196 L66 160 L76 122 L98 92 Z";
-const PINS = [[64,52],[70,58],[66,63],[60,57],[72,49],[58,47],[75,62],[62,70],[55,64],[68,44],
-              [50,55],[45,44],[78,55],[57,76],[48,68],[71,71],[41,60],[66,36],[53,38],[74,41]];
+/* --- mapa do Brasil: contorno real, coordenadas derivadas de lon/lat --- */
+const BR_PATH =
+ "M549 64 L590 120 L624 198 L660 205 L718 223 L790 232 L849 251 L900 272 L923 299 L932 329 "+
+ "L930 350 L905 395 L870 430 L849 465 L838 507 L820 560 L808 634 L775 665 L743 696 L700 710 "+
+ "L673 719 L645 740 L624 753 L624 802 L597 841 L560 890 L513 942 L470 900 L430 852 L455 800 "+
+ "L486 753 L460 700 L430 650 L417 604 L417 537 L390 500 L330 470 L290 440 L246 415 L180 390 "+
+ "L120 355 L72 338 L100 300 L142 262 L175 220 L205 163 L250 120 L290 80 L310 45 L340 70 "+
+ "L360 110 L405 119 L472 115 Z";
+
+/* cidades reais — [x%, y%] no mesmo espaço do viewBox, peso no Sudeste */
+const PINS = [
+  [66.7,70.8],[65.5,69.4],[64.6,70.8],[67.3,71.9],[64.0,65.5],[60.4,64.5], // SP e interior
+  [74.3,69.4],[80.8,63.4],                                                  // RJ, Vitória
+  [72.7,62.5],[62.8,60.2],                                                  // BH, Uberlândia
+  [60.6,75.1],[56.3,70.3],[62.4,80.2],[56.3,85.7],                          // Sul
+  [63.7,53.0],[60.6,55.1],[40.3,52.5],                                      // Centro-Oeste
+  [84.9,46.5],[91.2,38.9],[93.1,35.1],[92.3,29.9],[84.9,25.2],              // Nordeste
+  [71.8,22.4],[62.4,19.9],[36.5,23.7],                                      // Norte
+];
 const mapa = () => `
   <div class="mapa">
-    <svg viewBox="0 0 400 400"><path d="${BR_PATH}" fill="#EDE3D4" stroke="#DFD2BF" stroke-width="2"/></svg>
-    ${PINS.map(([x,y],i)=>`<div class="pin" style="left:${x}%;top:${y}%;animation-delay:${(.9+i*.09).toFixed(2)}s">
-        <i></i><b style="animation-delay:${(1.2+i*.09).toFixed(2)}s"></b></div>`).join("")}
+    <svg viewBox="0 0 1000 1000">
+      <path d="${BR_PATH}" fill="#EDE3D4" stroke="#DCCFBB" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+    ${PINS.map(([x,y],i)=>`<div class="pin" style="left:${x}%;top:${y}%;animation-delay:${(.9+i*.075).toFixed(2)}s">
+        <i></i><b style="animation-delay:${(1.2+i*.075).toFixed(2)}s"></b></div>`).join("")}
   </div>`;
 
 /* --- canais + fios --- */
@@ -473,6 +489,136 @@ const CENAS = [
   </div><div class="linha-dados"></div>`},
 ];
 
+/* ==================================================================
+   SOM — efeitos sintetizados em Web Audio, presos ao timeline.
+   Sem arquivo de áudio: tudo gerado na hora, sempre em sincronia.
+================================================================== */
+let ac=null, bus=null, pad=null;
+function audioOn(){
+  if(ac) return;
+  ac = new (window.AudioContext||window.webkitAudioContext)();
+  bus = ac.createGain(); bus.gain.value=.9; bus.connect(ac.destination);
+}
+const ruido = dur => {                     // buffer de ruído branco
+  const n = Math.floor(ac.sampleRate*dur), b = ac.createBuffer(1,n,ac.sampleRate), d = b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i] = Math.random()*2-1;
+  const s = ac.createBufferSource(); s.buffer=b; return s;
+};
+const env = (node,t,a,dec,pico=1) => {
+  const g = ac.createGain(); g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(pico,t+a);
+  g.gain.exponentialRampToValueAtTime(.0001,t+a+dec);
+  node.connect(g); return g;
+};
+
+/* --- vocabulário sonoro --- */
+const SFX = {
+  /* passagem de ar quando uma frase sobe */
+  whoosh(t,f=1){
+    const s=ruido(.5), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=1.1;
+    bp.frequency.setValueAtTime(320*f,t); bp.frequency.exponentialRampToValueAtTime(2600*f,t+.22);
+    s.connect(bp); env(bp,t,.04,.3,.18).connect(bus); s.start(t); s.stop(t+.5);
+  },
+  /* impacto surdo quando a frase assenta */
+  thock(t,p=110){
+    const o=ac.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(p*1.9,t); o.frequency.exponentialRampToValueAtTime(p,t+.09);
+    env(o,t,.004,.26,.5).connect(bus); o.start(t); o.stop(t+.4);
+  },
+  /* pin nascendo, satélite entrando */
+  pop(t,p=760){
+    const o=ac.createOscillator(); o.type="triangle";
+    o.frequency.setValueAtTime(p,t); o.frequency.exponentialRampToValueAtTime(p*.45,t+.1);
+    env(o,t,.003,.12,.18).connect(bus); o.start(t); o.stop(t+.2);
+  },
+  /* peça de metal encaixando */
+  snap(t){
+    const s=ruido(.12), hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2400;
+    s.connect(hp); env(hp,t,.002,.09,.3).connect(bus); s.start(t); s.stop(t+.14);
+    const o=ac.createOscillator(); o.type="square"; o.frequency.setValueAtTime(220,t);
+    env(o,t,.002,.06,.1).connect(bus); o.start(t); o.stop(t+.1);
+  },
+  /* card / mensagem entrando */
+  tick(t){
+    const o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(1180,t);
+    env(o,t,.002,.06,.1).connect(bus); o.start(t); o.stop(t+.1);
+  },
+  /* cartela de respiro */
+  boom(t){
+    const o=ac.createOscillator(); o.type="sine";
+    o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(42,t+.5);
+    env(o,t,.006,.9,.75).connect(bus); o.start(t); o.stop(t+1.1);
+    const s=ruido(.5), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
+    s.connect(lp); env(lp,t,.004,.4,.22).connect(bus); s.start(t); s.stop(t+.6);
+  },
+  /* moedas, brilho */
+  shimmer(t){
+    [1568,2093,2637].forEach((f,i)=>{
+      const o=ac.createOscillator(); o.type="triangle"; o.frequency.value=f;
+      env(o,t+i*.05,.004,.3,.055).connect(bus); o.start(t+i*.05); o.stop(t+i*.05+.4);
+    });
+  },
+  /* tensão subindo antes do soco */
+  riser(t,dur=1.4){
+    const s=ruido(dur+.2), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=2.2;
+    bp.frequency.setValueAtTime(240,t); bp.frequency.exponentialRampToValueAtTime(4200,t+dur);
+    s.connect(bp);
+    const g=ac.createGain(); g.gain.setValueAtTime(.001,t);
+    g.gain.exponentialRampToValueAtTime(.28,t+dur); g.gain.exponentialRampToValueAtTime(.0001,t+dur+.18);
+    bp.connect(g); g.connect(bus); s.start(t); s.stop(t+dur+.25);
+  },
+  /* acorde de fecho */
+  swell(t){
+    [130.8,196,261.6,392].forEach((f,i)=>{
+      const o=ac.createOscillator(); o.type="sine"; o.frequency.value=f;
+      env(o,t+i*.09,.35,2.4,.12).connect(bus); o.start(t+i*.09); o.stop(t+i*.09+3);
+    });
+  },
+};
+
+/* colchão grave que corre por baixo do filme inteiro */
+function padOn(){
+  if(pad||!ac) return;
+  pad = ac.createGain(); pad.gain.value=0; pad.connect(bus);
+  [55,82.4,110].forEach(f=>{
+    const o=ac.createOscillator(); o.type="sine"; o.frequency.value=f;
+    const g=ac.createGain(); g.gain.value=.05; o.connect(g); g.connect(pad); o.start();
+  });
+  pad.gain.linearRampToValueAtTime(.5, ac.currentTime+2.5);
+}
+
+/* sons por cena — [segundo dentro da cena, efeito, argumento] */
+const L = (n,ini=.25,p=PASSO)=>Array.from({length:n},(_,i)=>[ini+i*p,"whoosh"]).concat(
+                               Array.from({length:n},(_,i)=>[ini+i*p+.42,"thock"]));
+const SONS = [
+  /* abertura  */ [[.25,"whoosh"],[.7,"thock",90],[.87,"whoosh"],[1.32,"thock",90],
+                   [2.4,"riser",1.5],[3.1,"whoosh",1.3],[3.55,"thock",70],
+                   [3.72,"whoosh",1.3],[4.2,"boom"]],
+  /* marca     */ [...L(4), ...Array.from({length:25},(_,i)=>[.9+i*.075,"pop",640+i*22])],
+  /* marketing */ [...L(4), [.35,"tick"],[.49,"tick"],[.63,"tick"],[.77,"tick"],[.91,"tick"],
+                   [1.5,"shimmer"],[2.0,"pop",900]],
+  /* cartela   */ [[.1,"boom"]],
+  /* vitória   */ [...L(2), [1.2,"tick"],[2.2,"tick"],[3.4,"tick"],[4.4,"tick"],[5.9,"pop",980]],
+  /* tecnologia*/ [...L(4), [.3,"pop",520],[.6,"snap"],[1.25,"snap"],[1.9,"snap"]],
+  /* treinamento*/[...L(1), [1.3,"shimmer"],[2.3,"tick"],[2.7,"tick"]],
+  /* cartela   */ [[.1,"boom"]],
+  /* metalife  */ [...L(2), [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
+                   [2.4,"snap"],[2.8,"snap"],[3.15,"snap"],[3.5,"thock",80]],
+  /* wellhub   */ [...L(2), [.4,"tick"],[1.0,"tick"],
+                   ...Array.from({length:7},(_,i)=>[1.1+i*.22,"shimmer"])],
+  /* funil     */ [...L(3), [.35,"thock",150],[.97,"thock",120],[1.59,"thock",95]],
+  /* cartela   */ [[.05,"riser",.8],[.85,"boom"]],
+  /* fecho     */ [[.2,"swell"],[2.1,"pop",880]],
+];
+
+function tocaCena(n){
+  if(!ac) return;
+  const t0 = ac.currentTime + .02;
+  (SONS[n]||[]).forEach(([t,tipo,arg]) => {
+    const f = SFX[tipo]; if(f) f(t0 + t, arg);
+  });
+}
+
 /* ================== motor ================== */
 const palco=document.getElementById("palco"), relogio=document.getElementById("relogio");
 const TOTAL=CENAS.reduce((a,c)=>a+c.dur,0);
@@ -495,6 +641,7 @@ function mostra(n){
   palco.innerHTML="";
   const c=CENAS[n], d=document.createElement("div");
   d.className=`cena ${c.cls}`; d.innerHTML=c.html; palco.appendChild(d);
+  tocaCena(n);
   setTimeout(()=>contadores(d),1000);
   timer=setTimeout(()=>{ d.classList.add("saindo");
     setTimeout(()=>{ i++;
@@ -508,6 +655,7 @@ function tick(){ if(!rodando)return;
   relogio.textContent=`${Math.min((performance.now()-t0)/1000,TOTAL).toFixed(1)}s / ${TOTAL.toFixed(1)}s`;
   requestAnimationFrame(tick); }
 function play(){ if(rodando)return; rodando=true; btPlay.textContent="⏸ Rodando";
+  audioOn(); if(ac.state==="suspended") ac.resume(); padOn();
   t0=performance.now()-ate(i)*1000; mostra(i); tick(); }
 function reset(){ clearTimeout(timer); rodando=false; i=0;
   btPlay.textContent="▶ Play"; relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0); clearTimeout(timer); }
@@ -516,6 +664,11 @@ const btPlay=document.getElementById("btPlay");
 btPlay.onclick=()=>rodando?(clearTimeout(timer),rodando=false,btPlay.textContent="▶ Play"):play();
 document.getElementById("btReset").onclick=reset;
 document.getElementById("btLimpo").onclick=()=>document.body.classList.toggle("gravando");
+const btSom=document.getElementById("btSom");
+btSom.onclick=()=>{ audioOn();
+  const mudo = bus.gain.value > .01;
+  bus.gain.setTargetAtTime(mudo?0:.9, ac.currentTime, .05);
+  btSom.textContent = mudo ? "🔇 Mudo" : "🔊 Som"; };
 addEventListener("keydown",e=>{ if(e.code==="Space"){e.preventDefault();btPlay.click();} if(e.key==="r")reset(); });
 relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0);
 </script>
