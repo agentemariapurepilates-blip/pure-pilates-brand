@@ -173,7 +173,7 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
 .obj-cal .grade i.on{background:var(--lima)}
 
 /* ================= REFORMER SVG — monta peça por peça ================= */
-.reformer{width:660px}
+.reformer{width:840px}
 .reformer svg{width:100%;display:block;overflow:visible}
 .peca{opacity:0;animation:montaPeca .85s cubic-bezier(.16,1,.3,1) forwards}
 @keyframes montaPeca{to{opacity:1;transform:translate(0,0)}}
@@ -265,16 +265,17 @@ h1.manchete.sobre-video .vermelho,
 .sobre-video .vermelho{ color:#FF5A63 }
 .sobre-video b{ color:#fff }
 
-/* a placa só desfoca o que está atrás da tipografia, colada nela */
+/* fundo de leitura: mancha radial que dissolve de verdade nas bordas.
+   backdrop-filter não funciona aqui: mask-image não recorta o blur. */
 .placa{ position:relative; z-index:1 }
 .placa::before{
-  content:""; position:absolute; inset:-22px -40px; z-index:-1; border-radius:26px;
-  backdrop-filter:blur(18px) brightness(.82);
-  -webkit-backdrop-filter:blur(18px) brightness(.82);
-  -webkit-mask-image:radial-gradient(118% 128% at 50% 50%,#000 52%,transparent 100%);
-  mask-image:radial-gradient(118% 128% at 50% 50%,#000 52%,transparent 100%);
+  content:""; position:absolute; inset:-64px -104px; z-index:-1;
+  background:radial-gradient(closest-side,
+    rgba(6,5,5,.74) 0%, rgba(6,5,5,.56) 48%, rgba(6,5,5,.24) 76%, rgba(6,5,5,0) 100%);
 }
-.placa.centro::before{ inset:-30px -56px }
+.placa.centro::before{ inset:-76px -128px }
+/* na abertura a placa só entra junto com o vídeo */
+.placa.tardia::before{ opacity:0; animation:aparece 1.1s ease 5s forwards }
 </style>
 </head>
 <body>
@@ -377,38 +378,58 @@ const pecaR = (conteudo, dx, dy, atraso) =>
   `<g class="peca" style="transform:translate(${dx}px,${dy}px);animation-delay:${atraso}s">${conteudo}</g>`;
 const reformer = () => `
   <div class="reformer">
-  <svg viewBox="0 0 660 300">
-    <!-- sombra -->
-    <ellipse cx="330" cy="272" rx="250" ry="14" fill="rgba(120,80,50,.13)"
+  <svg viewBox="0 0 820 340">
+    <ellipse cx="410" cy="306" rx="330" ry="15" fill="rgba(120,80,50,.13)"
              class="peca" style="transform:translate(0,30px);animation-delay:.2s"/>
-    <!-- base + pés -->
+
+    <!-- base: longarinas e pés -->
     ${pecaR(`
-      <rect x="60" y="196" width="540" height="26" rx="7" fill="var(--madeira)"/>
-      <rect x="78"  y="222" width="44" height="48" rx="6" fill="var(--madeira-2)"/>
-      <rect x="538" y="222" width="44" height="48" rx="6" fill="var(--madeira-2)"/>
-    `, 0, 70, .35)}
+      <rect x="60"  y="214" width="700" height="30" rx="8" fill="var(--madeira)"/>
+      <rect x="60"  y="238" width="700" height="9"  rx="4" fill="var(--madeira-2)" opacity=".7"/>
+      <rect x="86"  y="247" width="52" height="58" rx="7" fill="var(--madeira-2)"/>
+      <rect x="682" y="247" width="52" height="58" rx="7" fill="var(--madeira-2)"/>
+    `, 0, 80, .35)}
+
     <!-- trilhos -->
     ${pecaR(`
-      <rect x="92" y="184" width="476" height="7" rx="3.5" fill="#C9C2B8"/>
-      <rect x="92" y="172" width="476" height="7" rx="3.5" fill="#D8D2C9"/>
-    `, 0, -60, .95)}
-    <!-- carrinho -->
-    ${pecaR(`<rect x="150" y="128" width="300" height="46" rx="10" fill="var(--grafite)"/>
-             <rect x="150" y="128" width="300" height="10" rx="5" fill="#3E3E43"/>`, 0, -120, 1.5)}
+      <rect x="96" y="200" width="628" height="8" rx="4" fill="#CFC8BE"/>
+      <rect x="96" y="186" width="628" height="8" rx="4" fill="#E0DAD1"/>
+    `, 0, -70, .95)}
+
+    <!-- carrinho estofado -->
+    ${pecaR(`
+      <rect x="196" y="132" width="360" height="54" rx="11" fill="var(--grafite)"/>
+      <rect x="196" y="132" width="360" height="11" rx="6" fill="#404046"/>
+      <rect x="214" y="186" width="324" height="10" rx="5" fill="#1D1D20"/>
+    `, 0, -130, 1.5)}
+
     <!-- apoios de ombro -->
-    ${pecaR(`<circle cx="408" cy="118" r="17" fill="var(--grafite)"/>
-             <circle cx="446" cy="118" r="17" fill="var(--grafite)"/>`, 90, -150, 2.0)}
-    <!-- barra de pés -->
-    ${pecaR(`<path d="M86 196 L104 108 L148 108" stroke="var(--grafite)" stroke-width="13"
-              fill="none" stroke-linecap="round" stroke-linejoin="round"/>`, -110, -40, 2.4)}
+    ${pecaR(`
+      <rect x="470" y="96" width="34" height="40" rx="15" fill="var(--grafite)"/>
+      <rect x="516" y="96" width="34" height="40" rx="15" fill="var(--grafite)"/>
+    `, 110, -160, 2.0)}
+
+    <!-- barra de pés + plataforma -->
+    ${pecaR(`
+      <path d="M104 214 L124 112 L184 112" stroke="var(--grafite)" stroke-width="14"
+            fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="60" y="196" width="66" height="14" rx="4" fill="var(--madeira-2)"/>
+      <rect x="66" y="196" width="54" height="6" rx="3" fill="#2B2B2E"/>
+    `, -130, -50, 2.4)}
+
     <!-- molas -->
-    ${pecaR(`${[0,1,2,3].map(i=>`<line x1="470" y1="${150+i*12}" x2="556" y2="${150+i*12}"
-              stroke="#B9B2A8" stroke-width="5" stroke-linecap="round" stroke-dasharray="4 5"/>`).join("")}`,
-            130, 0, 2.8)}
-    <!-- alças -->
-    ${pecaR(`<path d="M600 200 q26 34 6 62" stroke="var(--grafite)" stroke-width="5" fill="none"/>
-             <path d="M614 200 q26 34 6 62" stroke="var(--grafite)" stroke-width="5" fill="none"/>`,
-            60, 0, 3.15)}
+    ${pecaR(`${[0,1,2,3,4].map(i=>`
+      <line x1="566" y1="${152+i*11}" x2="672" y2="${152+i*11}"
+            stroke="#B9B2A8" stroke-width="6" stroke-linecap="round" stroke-dasharray="3 6"/>`).join("")}`,
+      150, 0, 2.8)}
+
+    <!-- cordas e alças -->
+    ${pecaR(`
+      <path d="M724 176 q40 22 44 58" stroke="var(--grafite)" stroke-width="4" fill="none"/>
+      <path d="M738 176 q40 22 44 58" stroke="var(--grafite)" stroke-width="4" fill="none"/>
+      <path d="M760 232 q18 24 2 44 q-16 -20 -2 -44" fill="none" stroke="var(--grafite)" stroke-width="6"/>
+      <path d="M776 232 q18 24 2 44 q-16 -20 -2 -44" fill="none" stroke="var(--grafite)" stroke-width="6"/>
+    `, 70, 0, 3.15)}
   </svg></div>`;
 
 /* --- wellhub --- */
@@ -453,11 +474,11 @@ const CENAS = [
   <div class="acima" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center">
     <div class="brasa" style="left:20%;animation:pulsa 2.4s ease-in-out infinite, some 1.2s ease 5s forwards"></div>
     ${Array.from({length:14},(_,i)=>`<div class="fagulha" style="left:${19+Math.random()*10}%;top:${52+Math.random()*10}%;animation-delay:${i*.22}s"></div>`).join("")}
-    <div class="placa centro" style="color:#fff">
+    <div class="placa centro tardia" style="color:#fff">
       <div class="tela-txt sobreposta" data-in="0.05" data-out="2.9" style="align-items:center">
-        ${mh(A,"media")}
+        ${mh(A,"media sobre-video")}
       </div>
-      <h1 class="manchete sobre-video" style="max-width:none;margin-top:170px">
+      <h1 class="manchete sobre-video" style="max-width:none;margin-top:170px;position:relative;z-index:2">
         <span class="linha"><span style="animation-delay:3.3s">TER SUCESSO</span></span>
         <span class="linha"><span style="animation-delay:3.92s" class="vermelho">É OUTRA COISA.</span></span>
       </h1>
