@@ -279,6 +279,7 @@ h1.manchete.sobre-video .vermelho,
 </head>
 <body>
 <div id="palco"></div>
+<audio id="trilha" src="trilha.mp3" loop preload="auto"></audio>
 <div id="hud">
   <button id="btPlay">▶ Play</button>
   <button id="btReset">⟲ Reiniciar</button>
@@ -728,6 +729,32 @@ function compasso(c, t0){
 
 /* agenda o filme inteiro de uma vez: sem intervalo que possa não disparar */
 let fontesMus=[];
+/* --- trilha gravada: é ela que toca. A síntese acima fica de reserva,
+       desligada, caso um dia falte arquivo. --- */
+let trilhaEl=null, trilhaSrc=null;
+function trilhaLigar(){
+  trilhaEl = trilhaEl || document.getElementById("trilha");
+  if(!trilhaSrc){
+    try{ trilhaSrc = ac.createMediaElementSource(trilhaEl); trilhaSrc.connect(busMus); }
+    catch(e){ trilhaEl.volume = .9; }   // navegador que não deixa rotear: toca direto
+  }
+}
+function trilhaTocar(segundo){
+  trilhaLigar();
+  busMus.gain.cancelScheduledValues(ac.currentTime);
+  busMus.gain.setValueAtTime(.95, ac.currentTime);
+  try{ trilhaEl.currentTime = segundo % 57.5; }catch(e){}
+  trilhaEl.play().catch(()=>{});
+}
+function trilhaParar(){ if(trilhaEl) trilhaEl.pause(); }
+function trilhaSumir(dur=3.2){
+  if(!busMus) return;
+  busMus.gain.cancelScheduledValues(ac.currentTime);
+  busMus.gain.setValueAtTime(busMus.gain.value, ac.currentTime);
+  busMus.gain.linearRampToValueAtTime(.0001, ac.currentTime+dur);
+}
+
+/* reserva sintetizada, não usada enquanto houver trilha.mp3 */
 function musicaStart(){
   musicaStop();
   const t0=ac.currentTime+.12;
@@ -842,10 +869,11 @@ function mostra(n){
   const c=CENAS[n], d=document.createElement("div");
   d.className=`cena ${c.cls}`; d.innerHTML=c.html; palco.appendChild(d);
   tocaCena(n); telas(d); digitacao(d); contadores(d); videos(d);
+  if(n===CENAS.length-1) agendar(()=>trilhaSumir(3.2), 2200);
   timer=agendar(()=>{ d.classList.add("saindo");
     agendar(()=>{ i++;
       if(i<CENAS.length) mostra(i);
-      else{ rodando=false; musicaStop(); btPlay.textContent="▶ Play"; }
+      else{ rodando=false; trilhaParar(); btPlay.textContent="▶ Play"; }
     },460);
   }, c.dur*1000-460);
 }
@@ -856,10 +884,11 @@ function tick(){ if(!rodando)return;
   requestAnimationFrame(tick); }
 function play(){ if(rodando)return; rodando=true; btPlay.textContent="⏸ Rodando";
   audioOn();
-  if(ac.state==="suspended") ac.resume().then(musicaStart); else musicaStart();
+  const arranca=()=>trilhaTocar(ate(i));
+  if(ac.state==="suspended") ac.resume().then(arranca); else arranca();
   t0=performance.now()-ate(i)*1000; mostra(i); tick(); }
-function pausa(){ limpar(); musicaStop(); rodando=false; btPlay.textContent="▶ Play"; }
-function reset(){ limpar(); musicaStop(); rodando=false; i=0;
+function pausa(){ limpar(); trilhaParar(); rodando=false; btPlay.textContent="▶ Play"; }
+function reset(){ limpar(); trilhaParar(); rodando=false; i=0;
   btPlay.textContent="▶ Play"; relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0); limpar(); }
 
 const btPlay=document.getElementById("btPlay");
