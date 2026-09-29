@@ -29,6 +29,20 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
 .bg-lima{background:var(--lima)}
 .bg-bordo{background:radial-gradient(90% 80% at 30% 45%,#6B1418,#3A0B0E 55%,#1A0406)}
 
+
+/* ---------- inserts de vídeo: sempre com texto por cima ---------- */
+.video-fundo{position:absolute;inset:0;overflow:hidden;z-index:0}
+.video-fundo video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.video-fundo video.solo{opacity:1}
+.video-fundo video.seq{opacity:0;animation:vidFade 2.5s ease forwards}
+@keyframes vidFade{0%{opacity:0}10%{opacity:1}78%{opacity:1}100%{opacity:0}}
+.veu{position:absolute;inset:0}
+.acima{position:relative;z-index:2}
+.video-cartao{position:relative;width:88%;aspect-ratio:16/10;border-radius:26px;overflow:hidden;
+  box-shadow:0 44px 70px rgba(70,45,35,.22);opacity:0;transform:translateY(46px) scale(.95);
+  animation:entraHeroi 1s cubic-bezier(.16,1,.3,1) .3s forwards}
+.video-cartao video{width:100%;height:100%;object-fit:cover}
+
 /* ---------- brasa ---------- */
 .brasa{position:absolute;width:420px;height:420px;border-radius:50%;
   background:radial-gradient(circle,#FF4A22,#C1201F 22%,rgba(140,20,20,.45) 42%,transparent 68%);
@@ -59,7 +73,23 @@ html,body{height:100%;background:#000;overflow:hidden;font-family:Montserrat,Ari
 
 .bloco{position:absolute;inset:0;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;
        padding:0 120px;gap:60px}
-.texto{z-index:2}
+.texto{z-index:2;position:relative}
+
+/* telas de texto que se revezam dentro do mesmo bloco */
+.tela-txt{opacity:0;transform:translateY(16px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
+.tela-txt.on{opacity:1;transform:none}
+.tela-txt.off{opacity:0;transform:translateY(-14px)}
+.tela-txt.sobreposta{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center}
+
+/* frase grande que substitui a manchete */
+.frase{font-size:46px;line-height:1.28;font-weight:600;color:var(--preto);max-width:24ch}
+.frase b{font-weight:900}
+
+/* digitação */
+.digita::after{content:"";display:inline-block;width:3px;height:1em;margin-left:4px;
+  background:var(--vermelho);vertical-align:-.12em;animation:pisca .8s steps(1) infinite}
+.digita.pronto::after{display:none}
+@keyframes pisca{0%,50%{opacity:1}51%,100%{opacity:0}}
 .visual{position:relative;height:100%;display:flex;align-items:center;justify-content:center;perspective:1500px}
 
 /* ================= MAPA — pins nascem um a um ================= */
@@ -361,20 +391,34 @@ const repasse = () => `
 
 /* ================== ROTEIRO ================== */
 const A = ["ABRIR UM ESTÚDIO DE PILATES","QUALQUER UM ABRE."];
-const B = ["VOCÊ NÃO COMEÇA DO ZERO,","COMEÇA COM SUPORTE,","APOIO DO INÍCIO AO FIM E","UMA MARCA RECONHECIDA."];
-const C = ["O MARKETING NÃO É UM","BICHO DE SETE CABEÇAS","PARA O FRANQUEADO","PURE PILATES."];
-const D = ["A VITÓRIA RESPONDE.",`INCLUSIVE QUANDO VOCÊ <span class="grifo" style="animation-delay:${(.25+2*PASSO+.3).toFixed(2)}s">DORME.</span>`];
-const E = ["APLICATIVO","SITE","AGENDAMENTO ONLINE",`<span class="grifo" style="animation-delay:${(.25+4*PASSO).toFixed(2)}s">TUDO JÁ DE PÉ.</span>`];
-const F = [`VENDER PODE SER <span class="grifo" style="animation-delay:${(.25+PASSO+.3).toFixed(2)}s">APRENDIDO.</span>`];
-const G = ["MONTAGEM E MANUTENÇÃO","DOS APARELHOS."];
-const H = ["EXCLUSIVOS WELLHUB.",`REPASSE MAIOR NO SEU <span class="grifo" style="animation-delay:${(.25+2*PASSO+.3).toFixed(2)}s">CAIXA.</span>`];
+
+/* tela de texto que entra e, se tiver data-out, sai para a próxima ocupar o lugar */
+const tela = (html,tin,tout) =>
+  `<div class="tela-txt sobreposta" data-in="${tin}"${tout!=null?` data-out="${tout}"`:""}>${html}</div>`;
+/* frase digitada */
+const dig = (txt,atraso=.3,vel=26) =>
+  `<span data-digita="${txt}" data-atraso="${atraso}" data-vel="${vel}"></span>`;
+
+
+/* fundo de vídeo: um take em loop, ou vários se revezando */
+const vfundo = (takes, veu="rgba(5,5,5,.7)") => `
+  <div class="video-fundo">
+    ${takes.length===1
+      ? `<video class="solo" src="cortes/${takes[0]}.mp4" muted playsinline loop></video>`
+      : takes.map((a,i)=>`<video class="seq" src="cortes/${a}.mp4" muted playsinline loop
+           style="animation-delay:${(i*2.2).toFixed(2)}s"></video>`).join("")}
+    <div class="veu" style="background:${veu}"></div>
+  </div>`;
 
 const CENAS = [
+
+/* ---------------- ABERTURA ---------------- */
 { dur:7.5, cls:"bg-preto", html:`
   <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center">
-    <div class="brasa" style="left:20%"></div>
+    ${vfundo(["take03","take07","take10"],"linear-gradient(rgba(5,5,5,.86),rgba(5,5,5,.92))")}
+    <div class="brasa acima" style="left:20%"></div>
     ${Array.from({length:14},(_,i)=>`<div class="fagulha" style="left:${19+Math.random()*10}%;top:${52+Math.random()*10}%;animation-delay:${i*.22}s"></div>`).join("")}
-    <div style="position:relative;z-index:2;color:#fff">
+    <div class="acima" style="color:#fff">
       ${mh(A,"media")}
       <div style="height:56px"></div>
       <h1 class="manchete" style="max-width:none">
@@ -385,103 +429,118 @@ const CENAS = [
   </div>
   <style>.bg-preto .manchete{color:#fff;max-width:none}</style>`},
 
-{ dur:11, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${mh(B,"pequena")}${sub("Quando a sua unidade abre, o nome Pure Pilates faz total diferença.",fimDe(B))}
-    <div class="contador fade" style="animation-delay:${(fimDe(B)+.6).toFixed(2)}s;margin-top:36px;font-size:58px">
-      <span data-conta="492">0</span> <span style="font-size:21px;font-weight:800;letter-spacing:.2em;color:#9A918C">UNIDADES</span>
-      <span class="de" style="margin:0 .16em">·</span>
-      <span data-conta="89">0</span> <span style="font-size:21px;font-weight:800;letter-spacing:.2em;color:#9A918C">CIDADES</span>
-    </div>
+/* ---------------- A MARCA ---------------- */
+{ dur:13, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto" style="min-height:620px">
+    ${tela(`<h1 class="manchete">
+      <span class="linha"><span style="animation-delay:.35s">VOCÊ NÃO</span></span>
+      <span class="linha"><span style="animation-delay:.97s">COMEÇA DO ZERO</span></span></h1>`, .1, 3.8)}
+    ${tela(`
+      <p class="frase">${dig("Começa com suporte, apoio do início ao fim e uma marca reconhecida.",.35,25)}</p>
+      <div class="contador tela-txt" data-in="7.6" style="margin-top:44px;font-size:56px">
+        <span data-conta="492" data-atraso="7.8">0</span>
+        <span style="font-size:20px;font-weight:800;letter-spacing:.2em;color:#9A918C">UNIDADES</span>
+        <span class="de" style="margin:0 .16em">·</span>
+        <span data-conta="89" data-atraso="7.8">0</span>
+        <span style="font-size:20px;font-weight:800;letter-spacing:.2em;color:#9A918C">CIDADES</span>
+      </div>`, 4.2)}
   </div><div class="visual">${mapa()}</div></div>`},
 
-{ dur:11, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${rot("Marketing")}${mh(C,"pequena")}
-    ${sub("Campanha nacional, criativos prontos e mídia rodando na sua região. Você recebe o lead, não a tarefa de gerar o lead.",fimDe(C))}
+/* ---------------- MARKETING ---------------- */
+{ dur:11.5, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto" style="min-height:620px">
+    ${tela(`${rot("Marketing")}<h1 class="manchete pequena">
+      <span class="linha"><span style="animation-delay:.35s">O MARKETING NÃO É UM</span></span>
+      <span class="linha"><span style="animation-delay:.97s">BICHO DE SETE CABEÇAS</span></span>
+      <span class="linha"><span style="animation-delay:1.59s">PARA O FRANQUEADO</span></span>
+      <span class="linha"><span style="animation-delay:2.21s">PURE PILATES.</span></span></h1>`, .1, 5.4)}
+    ${tela(`<p class="frase">Você recebe o lead <b>na sua unidade</b>,<br>não a tarefa de gerar o lead.</p>`, 5.9)}
   </div><div class="visual">${canais()}</div></div>`},
 
+/* ---------------- CARTELA ---------------- */
 { dur:2.4, cls:"bg-lima", html:`
-  <div class="cartela"><div class="palavra"><span class="linha"><span>CHEGOU O LEAD.</span></span></div>
+  ${vfundo(["take06"],"linear-gradient(rgba(200,217,44,.82),rgba(176,194,30,.88))")}
+  <div class="cartela acima"><div class="palavra"><span class="linha"><span>CHEGOU O LEAD.</span></span></div>
   <div class="trilha fade" style="animation-delay:.6s">Marca · Marketing · Tecnologia · Operação</div></div>`},
 
-{ dur:11, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${rot("Tecnologia")}${mh(D,"media")}
-    ${sub("Ela tira a dúvida, acha a unidade mais perto, mostra horário e agenda a experimental. Se o lead some, ela volta atrás dele.",fimDe(D))}
-    <div class="chips fade" style="animation-delay:${(fimDe(D)+.7).toFixed(2)}s;margin-top:24px">
-      ${["15 min","2 h","6 h","12 h"].map(t=>`<span class="chip" style="font-size:14px;padding:8px 16px">${t}</span>`).join("")}
-      <span style="font-size:13px;color:#9A918C;align-self:center;margin-left:8px;letter-spacing:.14em;font-weight:800;text-transform:uppercase">sumiu? ela volta</span>
-    </div>
+/* ---------------- A VITÓRIA ---------------- */
+{ dur:12, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto" style="min-height:620px">
+    ${tela(`${rot("Tecnologia")}<h1 class="manchete media">
+      <span class="linha"><span style="animation-delay:.35s">A VITÓRIA RESPONDE.</span></span>
+      <span class="linha"><span style="animation-delay:.97s">INCLUSIVE QUANDO VOCÊ <span class="grifo" style="animation-delay:1.5s">DORME.</span></span></span></h1>`, .1, 4.8)}
+    ${tela(`<p class="frase">Ela tira a dúvida, acha a unidade mais perto, mostra horário e <b>agenda a experimental.</b></p>`, 5.3)}
   </div><div class="visual">
     <div class="fone"><div class="tela">
       <div class="topo">Pure Pilates<small>Vitória · online</small></div>
       <div class="chat">
-        <div class="balao dela" style="animation-delay:1.2s">Oi! Quero conhecer o Pilates 😊</div>
-        <div class="balao dele" style="animation-delay:2.2s">Oi! Eu sou a Vitória, da Pure Pilates. Me conta: em que bairro você mora?</div>
-        <div class="balao dela" style="animation-delay:3.4s">Perto da Paulista</div>
-        <div class="balao dele" style="animation-delay:4.4s">Achei 3 unidades perto de você. Estes horários estão livres amanhã:
+        <div class="balao dela" style="animation-delay:1.4s">Oi! Quero conhecer o Pilates 😊</div>
+        <div class="balao dele" style="animation-delay:2.6s">Oi! Eu sou a Vitória, da Pure Pilates. Me conta: em que bairro você mora?</div>
+        <div class="balao dela" style="animation-delay:4.0s">Perto da Paulista</div>
+        <div class="balao dele" style="animation-delay:5.2s">Achei 3 unidades perto de você. Estes horários estão livres amanhã:
           <div class="chips"><span class="chip">07:00</span><span class="chip">12:00</span><span class="chip">18:00</span></div></div>
-        <div class="balao dele" style="animation-delay:5.9s;background:#D6F0DC">Aula agendada! ✅ Te vejo amanhã às 18:00.</div>
+        <div class="balao dele" style="animation-delay:7.0s;background:#D6F0DC">Aula agendada! ✅ Te vejo amanhã às 18:00.</div>
       </div></div></div>
   </div></div>`},
 
-{ dur:10, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${rot("Tecnologia")}${mh(E,"media")}
-    ${sub("Você aprende como gerir tudo que recebe assim que abre uma Pure.",fimDe(E))}
+/* ---------------- TECNOLOGIA ---------------- */
+{ dur:11.5, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto" style="min-height:620px">
+    ${tela(`${rot("Tecnologia")}<h1 class="manchete media">
+      <span class="linha"><span style="animation-delay:.35s">APLICATIVO</span></span>
+      <span class="linha"><span style="animation-delay:.97s">SITE</span></span>
+      <span class="linha"><span style="animation-delay:1.59s">AGENDAMENTO ONLINE</span></span>
+      <span class="linha"><span style="animation-delay:2.4s"><span class="grifo" style="animation-delay:2.9s">TUDO PRONTO.</span></span></span></h1>`, .1, 5.8)}
+    ${tela(`<p class="frase">Você aprende como gerir tudo que recebe <b>assim que abre uma Pure.</b></p>`, 6.3)}
   </div><div class="visual">${ecossistema()}</div></div>`},
 
-{ dur:9.5, cls:"bg-creme", html:`
+/* ---------------- METALIFE ---------------- */
+{ dur:10.5, cls:"bg-creme", html:`
   <div class="bloco"><div class="texto">
-    ${rot("Suporte")}${mh(F,"media")}
-    ${sub("Sua equipe entra treinada: script da experimental, régua de follow-up e tudo que você precisa para conseguir converter os leads que chegam.",fimDe(F))}
-  </div><div class="visual" style="flex-direction:column;gap:26px">
-    <div class="contador fade" style="animation-delay:1.3s">
-      <span class="de">41%</span><span class="seta">→</span><span data-conta="68" data-suf="%">41</span></div>
-    <div class="fade" style="animation-delay:1.7s;font-size:16px;letter-spacing:.16em;text-transform:uppercase;color:#9A918C;font-weight:800">de comparecimento com o lembrete</div>
-    <div style="display:flex;gap:20px;margin-top:16px">
-      <div class="cartao" style="animation-delay:2.3s;border-left:5px solid var(--verde)"><div class="cap">Veio</div><h4>Como foi a sua aula?</h4></div>
-      <div class="cartao" style="animation-delay:2.7s;border-left:5px solid var(--ambar)"><div class="cap">Faltou</div><h4>Podemos remarcar?</h4></div>
-    </div>
-  </div></div>`},
-
-{ dur:2.4, cls:"bg-lima", html:`
-  <div class="cartela"><div class="palavra"><span class="linha"><span>MATRICULOU.</span></span></div>
-  <div class="trilha fade" style="animation-delay:.6s">Agendou · Compareceu · Matriculou</div></div>`},
-
-{ dur:11, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${rot("Operação")}${mh(G,"media")}
-    ${sub("MetaLife: parcelamento dos aparelhos, montagem e manutenção. Você não vira gestor de obra.",fimDe(G))}
+    ${rot("Operação")}
+    <h1 class="manchete media">
+      <span class="linha"><span style="animation-delay:.35s">MONTAGEM E MANUTENÇÃO</span></span>
+      <span class="linha"><span style="animation-delay:.97s">DOS APARELHOS.</span></span></h1>
   </div><div class="visual">${reformer()}</div></div>`},
 
-{ dur:10, cls:"bg-creme", html:`
-  <div class="bloco"><div class="texto">
-    ${rot("Operação")}${mh(H,"media")}
-    ${sub("Somos a única rede de Pilates exclusiva Wellhub — e isso vira dinheiro na sua unidade, todo mês.",fimDe(H))}
+/* ---------------- WELLHUB ---------------- */
+{ dur:11.5, cls:"bg-creme", html:`
+  <div class="bloco"><div class="texto" style="min-height:620px">
+    ${tela(`${rot("Operação")}<h1 class="manchete media">
+      <span class="linha"><span style="animation-delay:.35s">EXCLUSIVOS WELLHUB.</span></span>
+      <span class="linha"><span style="animation-delay:.97s">REPASSE MAIOR NO SEU <span class="grifo" style="animation-delay:1.5s">CAIXA.</span></span></span></h1>`, .1, 5.0)}
+    ${tela(`<p class="frase">${dig("Somos a única rede de Pilates exclusiva Wellhub — e isso vira dinheiro na sua unidade, todo mês.",.35,24)}</p>`, 5.5)}
   </div><div class="visual">${repasse()}</div></div>`},
 
-{ dur:9, cls:"bg-creme", html:`
+/* ---------------- O FUNIL ---------------- */
+{ dur:9.5, cls:"bg-creme", html:`
   <div class="bloco"><div class="texto">
     <h1 class="manchete media">
-      <span class="linha"><span style="animation-delay:.25s;color:var(--azul)">O LEAD AGENDOU</span></span>
-      <span class="linha"><span style="animation-delay:${(.25+PASSO).toFixed(2)}s;color:var(--ambar)">COMPARECEU</span></span>
-      <span class="linha"><span style="animation-delay:${(.25+2*PASSO).toFixed(2)}s;color:var(--vermelho)">MATRICULOU</span></span></h1>
-    ${sub("A gente não quer só vender unidades, a gente quer o seu sucesso. Nenhuma unidade fechada até agora — e nosso objetivo é continuar assim.",.25+3*PASSO)}
-  </div><div class="visual"><div class="barras">
-    <div class="barra" style="height:100%;background:var(--azul);animation-delay:.35s"><span>Agendou</span></div>
-    <div class="barra" style="height:68%;background:var(--ambar);animation-delay:${(.35+PASSO).toFixed(2)}s"><span>Compareceu</span></div>
-    <div class="barra" style="height:42%;background:var(--vermelho);animation-delay:${(.35+2*PASSO).toFixed(2)}s"><span>Matriculou</span></div>
-  </div></div></div>`},
+      <span class="linha"><span style="animation-delay:.3s">A GENTE NÃO QUER</span></span>
+      <span class="linha"><span style="animation-delay:.92s">APENAS VENDER UNIDADES</span></span>
+      <span class="linha"><span style="animation-delay:1.7s">A GENTE QUER</span></span>
+      <span class="linha"><span style="animation-delay:2.32s" class="vermelho">O SEU SUCESSO!</span></span></h1>
+  </div><div class="visual">
+    <div class="video-cartao"><video src="cortes/take09.mp4" muted playsinline loop></video>
+      <div class="veu" style="background:linear-gradient(rgba(244,239,231,.14),rgba(244,239,231,.55))"></div>
+      <div class="acima" style="position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:40px 0 54px">
+      <div class="barras" style="height:74%">
+    <div class="barra" style="height:100%;background:var(--azul);animation-delay:.4s"><span>Agendou</span></div>
+    <div class="barra" style="height:68%;background:var(--ambar);animation-delay:1.1s"><span>Compareceu</span></div>
+    <div class="barra" style="height:42%;background:var(--vermelho);animation-delay:1.8s"><span>Matriculou</span></div>
+  </div></div></div></div></div>`},
 
+/* ---------------- CARTELA FINAL ---------------- */
 { dur:3.4, cls:"bg-bordo", html:`
-  <div class="cartela"><div class="brasa" style="left:12%;top:20%;opacity:.5"></div>
+  ${vfundo(["take02"],"linear-gradient(rgba(58,11,14,.84),rgba(26,4,6,.92))")}
+  <div class="cartela acima"><div class="brasa" style="left:12%;top:20%;opacity:.5"></div>
   <div class="palavra" style="position:relative;z-index:2;font-size:104px"><span class="linha"><span>VOCÊ NÃO ABRE SOZINHO.</span></span></div>
   <div class="trilha fade" style="animation-delay:.7s;position:relative;z-index:2">Marca · Tecnologia · Operação</div></div>`},
 
+/* ---------------- FECHO ---------------- */
 { dur:6.5, cls:"bg-bordo", html:`
-  <div class="fecho">
+  ${vfundo(["take11"],"linear-gradient(rgba(58,11,14,.9),rgba(26,4,6,.95))")}
+  <div class="fecho acima">
     <div class="marca-cartao fade" style="animation-delay:.2s"><img src="../marca/logo-pure-pilates.png" alt="Pure Pilates"></div>
     <div class="tagline fade" style="animation-delay:.9s">Marca, tecnologia e operação.</div>
     <div class="prova fade" style="animation-delay:1.4s">492 unidades · 89 cidades</div>
@@ -490,133 +549,181 @@ const CENAS = [
 ];
 
 /* ==================================================================
-   SOM — efeitos sintetizados em Web Audio, presos ao timeline.
-   Sem arquivo de áudio: tudo gerado na hora, sempre em sincronia.
+   SOM — trilha + efeitos, sintetizados em Web Audio.
+   A música roda a 100 BPM (1 tempo = 0,6s), o mesmo PASSO do texto:
+   cada frase que sobe cai em cima de um tempo da batida.
 ================================================================== */
-let ac=null, bus=null, pad=null;
+let ac=null, bus=null, busMus=null, busFx=null, agenda=null;
+
 function audioOn(){
   if(ac) return;
   ac = new (window.AudioContext||window.webkitAudioContext)();
-  bus = ac.createGain(); bus.gain.value=.9; bus.connect(ac.destination);
+  bus    = ac.createGain(); bus.gain.value=.9;    bus.connect(ac.destination);
+  busMus = ac.createGain(); busMus.gain.value=.55; busMus.connect(bus);
+  busFx  = ac.createGain(); busFx.gain.value=.5;  busFx.connect(bus);
 }
-const ruido = dur => {                     // buffer de ruído branco
-  const n = Math.floor(ac.sampleRate*dur), b = ac.createBuffer(1,n,ac.sampleRate), d = b.getChannelData(0);
-  for(let i=0;i<n;i++) d[i] = Math.random()*2-1;
-  const s = ac.createBufferSource(); s.buffer=b; return s;
+const ruido = dur => {
+  const n=Math.floor(ac.sampleRate*dur), b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=Math.random()*2-1;
+  const s=ac.createBufferSource(); s.buffer=b; return s;
 };
-const env = (node,t,a,dec,pico=1) => {
-  const g = ac.createGain(); g.gain.setValueAtTime(0,t);
+const env = (node,t,a,dec,pico=1,dest=null) => {
+  const g=ac.createGain(); g.gain.setValueAtTime(0,t);
   g.gain.linearRampToValueAtTime(pico,t+a);
   g.gain.exponentialRampToValueAtTime(.0001,t+a+dec);
-  node.connect(g); return g;
+  node.connect(g); g.connect(dest||busFx); return g;
 };
 
-/* --- vocabulário sonoro --- */
+/* ---------------- efeitos ---------------- */
 const SFX = {
-  /* passagem de ar quando uma frase sobe */
-  whoosh(t,f=1){
-    const s=ruido(.5), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=1.1;
+  whoosh(t,f=1){ const s=ruido(.5),bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=1.1;
     bp.frequency.setValueAtTime(320*f,t); bp.frequency.exponentialRampToValueAtTime(2600*f,t+.22);
-    s.connect(bp); env(bp,t,.04,.3,.18).connect(bus); s.start(t); s.stop(t+.5);
-  },
-  /* impacto surdo quando a frase assenta */
-  thock(t,p=110){
-    const o=ac.createOscillator(); o.type="sine";
+    s.connect(bp); env(bp,t,.04,.3,.16); s.start(t); s.stop(t+.5); },
+  thock(t,p=110){ const o=ac.createOscillator(); o.type="sine";
     o.frequency.setValueAtTime(p*1.9,t); o.frequency.exponentialRampToValueAtTime(p,t+.09);
-    env(o,t,.004,.26,.5).connect(bus); o.start(t); o.stop(t+.4);
-  },
-  /* pin nascendo, satélite entrando */
-  pop(t,p=760){
-    const o=ac.createOscillator(); o.type="triangle";
+    env(o,t,.004,.26,.42); o.start(t); o.stop(t+.4); },
+  pop(t,p=760){ const o=ac.createOscillator(); o.type="triangle";
     o.frequency.setValueAtTime(p,t); o.frequency.exponentialRampToValueAtTime(p*.45,t+.1);
-    env(o,t,.003,.12,.18).connect(bus); o.start(t); o.stop(t+.2);
-  },
-  /* peça de metal encaixando */
-  snap(t){
-    const s=ruido(.12), hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2400;
-    s.connect(hp); env(hp,t,.002,.09,.3).connect(bus); s.start(t); s.stop(t+.14);
+    env(o,t,.003,.12,.14); o.start(t); o.stop(t+.2); },
+  snap(t){ const s=ruido(.12),hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=2400;
+    s.connect(hp); env(hp,t,.002,.09,.26); s.start(t); s.stop(t+.14);
     const o=ac.createOscillator(); o.type="square"; o.frequency.setValueAtTime(220,t);
-    env(o,t,.002,.06,.1).connect(bus); o.start(t); o.stop(t+.1);
-  },
-  /* card / mensagem entrando */
-  tick(t){
-    const o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(1180,t);
-    env(o,t,.002,.06,.1).connect(bus); o.start(t); o.stop(t+.1);
-  },
-  /* cartela de respiro */
-  boom(t){
-    const o=ac.createOscillator(); o.type="sine";
+    env(o,t,.002,.06,.08); o.start(t); o.stop(t+.1); },
+  tick(t){ const o=ac.createOscillator(); o.type="sine"; o.frequency.setValueAtTime(1180,t);
+    env(o,t,.002,.05,.07); o.start(t); o.stop(t+.09); },
+  boom(t){ const o=ac.createOscillator(); o.type="sine";
     o.frequency.setValueAtTime(140,t); o.frequency.exponentialRampToValueAtTime(42,t+.5);
-    env(o,t,.006,.9,.75).connect(bus); o.start(t); o.stop(t+1.1);
-    const s=ruido(.5), lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
-    s.connect(lp); env(lp,t,.004,.4,.22).connect(bus); s.start(t); s.stop(t+.6);
-  },
-  /* moedas, brilho */
-  shimmer(t){
-    [1568,2093,2637].forEach((f,i)=>{
-      const o=ac.createOscillator(); o.type="triangle"; o.frequency.value=f;
-      env(o,t+i*.05,.004,.3,.055).connect(bus); o.start(t+i*.05); o.stop(t+i*.05+.4);
-    });
-  },
-  /* tensão subindo antes do soco */
-  riser(t,dur=1.4){
-    const s=ruido(dur+.2), bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=2.2;
+    env(o,t,.006,.9,.7); o.start(t); o.stop(t+1.1);
+    const s=ruido(.5),lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900;
+    s.connect(lp); env(lp,t,.004,.4,.2); s.start(t); s.stop(t+.6); },
+  shimmer(t){ [1568,2093,2637].forEach((f,i)=>{ const o=ac.createOscillator();
+    o.type="triangle"; o.frequency.value=f; env(o,t+i*.05,.004,.3,.045);
+    o.start(t+i*.05); o.stop(t+i*.05+.4); }); },
+  riser(t,dur=1.4){ const s=ruido(dur+.2),bp=ac.createBiquadFilter(); bp.type="bandpass"; bp.Q.value=2.2;
     bp.frequency.setValueAtTime(240,t); bp.frequency.exponentialRampToValueAtTime(4200,t+dur);
-    s.connect(bp);
-    const g=ac.createGain(); g.gain.setValueAtTime(.001,t);
-    g.gain.exponentialRampToValueAtTime(.28,t+dur); g.gain.exponentialRampToValueAtTime(.0001,t+dur+.18);
-    bp.connect(g); g.connect(bus); s.start(t); s.stop(t+dur+.25);
-  },
-  /* acorde de fecho */
-  swell(t){
-    [130.8,196,261.6,392].forEach((f,i)=>{
-      const o=ac.createOscillator(); o.type="sine"; o.frequency.value=f;
-      env(o,t+i*.09,.35,2.4,.12).connect(bus); o.start(t+i*.09); o.stop(t+i*.09+3);
-    });
-  },
+    s.connect(bp); const g=ac.createGain(); g.gain.setValueAtTime(.001,t);
+    g.gain.exponentialRampToValueAtTime(.26,t+dur); g.gain.exponentialRampToValueAtTime(.0001,t+dur+.18);
+    bp.connect(g); g.connect(busFx); s.start(t); s.stop(t+dur+.25); },
 };
 
-/* colchão grave que corre por baixo do filme inteiro */
-function padOn(){
-  if(pad||!ac) return;
-  pad = ac.createGain(); pad.gain.value=0; pad.connect(bus);
-  [55,82.4,110].forEach(f=>{
-    const o=ac.createOscillator(); o.type="sine"; o.frequency.value=f;
-    const g=ac.createGain(); g.gain.value=.05; o.connect(g); g.connect(pad); o.start();
-  });
-  pad.gain.linearRampToValueAtTime(.5, ac.currentTime+2.5);
+/* ==================== TRILHA ====================
+   100 BPM · compasso 4/4 · 1 tempo = .6s · 1 compasso = 2.4s
+   Harmonia: Am – F – C – G, que é o ciclo que segura tensão e
+   resolve pra frente sem ficar melancólico.
+=================================================== */
+const BPM=100, T=60/BPM, COMPASSO=4*T;
+const AC_={Am:[220.00,261.63,329.63], F:[174.61,220.00,261.63],
+           C:[261.63,329.63,392.00],  G:[196.00,246.94,392.00]};
+const BX={Am:110.00,F:87.31,C:130.81,G:98.00};
+const CICLO=["Am","F","C","G"];
+
+/* que camadas tocam em cada compasso (0 a 41) */
+function arranjo(c){
+  if(c<4)  return {sub:1,kick:0,hat:0,pad:.5,arp:0};   // abertura: só tensão
+  if(c<9)  return {sub:1,kick:1,hat:0,pad:1, arp:0};   // marca
+  if(c<14) return {sub:1,kick:1,hat:1,pad:1, arp:0};   // marketing
+  if(c<15) return {sub:1,kick:0,hat:0,pad:1, arp:0};   // cartela: abre espaço
+  if(c<20) return {sub:1,kick:1,hat:1,pad:1, arp:.7};  // vitória
+  if(c<25) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // tecnologia
+  if(c<29) return {sub:1,kick:1,hat:1,pad:1, arp:.8};  // metalife
+  if(c<34) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // wellhub
+  if(c<38) return {sub:1,kick:1,hat:1,pad:1, arp:1};   // funil: build
+  if(c<39) return {sub:1,kick:0,hat:0,pad:1, arp:0};   // cartela final
+  return    {sub:1,kick:0,hat:0,pad:1, arp:.5};        // fecho: resolve
 }
 
-/* sons por cena — [segundo dentro da cena, efeito, argumento] */
-const L = (n,ini=.25,p=PASSO)=>Array.from({length:n},(_,i)=>[ini+i*p,"whoosh"]).concat(
-                               Array.from({length:n},(_,i)=>[ini+i*p+.42,"thock"]));
-const SONS = [
-  /* abertura  */ [[.25,"whoosh"],[.7,"thock",90],[.87,"whoosh"],[1.32,"thock",90],
-                   [2.4,"riser",1.5],[3.1,"whoosh",1.3],[3.55,"thock",70],
-                   [3.72,"whoosh",1.3],[4.2,"boom"]],
-  /* marca     */ [...L(4), ...Array.from({length:25},(_,i)=>[.9+i*.075,"pop",640+i*22])],
-  /* marketing */ [...L(4), [.35,"tick"],[.49,"tick"],[.63,"tick"],[.77,"tick"],[.91,"tick"],
-                   [1.5,"shimmer"],[2.0,"pop",900]],
-  /* cartela   */ [[.1,"boom"]],
-  /* vitória   */ [...L(2), [1.2,"tick"],[2.2,"tick"],[3.4,"tick"],[4.4,"tick"],[5.9,"pop",980]],
-  /* tecnologia*/ [...L(4), [.3,"pop",520],[.6,"snap"],[1.25,"snap"],[1.9,"snap"]],
-  /* treinamento*/[...L(1), [1.3,"shimmer"],[2.3,"tick"],[2.7,"tick"]],
-  /* cartela   */ [[.1,"boom"]],
-  /* metalife  */ [...L(2), [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
-                   [2.4,"snap"],[2.8,"snap"],[3.15,"snap"],[3.5,"thock",80]],
-  /* wellhub   */ [...L(2), [.4,"tick"],[1.0,"tick"],
-                   ...Array.from({length:7},(_,i)=>[1.1+i*.22,"shimmer"])],
-  /* funil     */ [...L(3), [.35,"thock",150],[.97,"thock",120],[1.59,"thock",95]],
-  /* cartela   */ [[.05,"riser",.8],[.85,"boom"]],
-  /* fecho     */ [[.2,"swell"],[2.1,"pop",880]],
-];
+function nota(tipo,t,f,dur,vol){
+  const o=ac.createOscillator();
+  if(tipo==="sub"){ o.type="sine"; o.frequency.value=f;
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+.02);
+    g.gain.setValueAtTime(vol,t+dur-.12);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+  }
+  if(tipo==="pad"){ o.type="sawtooth"; o.frequency.value=f;
+    const lp=ac.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=900; lp.Q.value=.6;
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+.5);
+    g.gain.setValueAtTime(vol,t+dur-.5);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(lp); lp.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+  }
+  if(tipo==="arp"){ o.type="triangle"; o.frequency.value=f;
+    const g=ac.createGain(); g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(vol,t+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g); g.connect(busMus); o.start(t); o.stop(t+dur+.05); return;
+  }
+}
+function kick(t,vol){
+  const o=ac.createOscillator(); o.type="sine";
+  o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(45,t+.11);
+  const g=ac.createGain(); g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.32);
+  o.connect(g); g.connect(busMus); o.start(t); o.stop(t+.36);
+}
+function hat(t,vol){
+  const s=ruido(.06), hp=ac.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=7000;
+  const g=ac.createGain(); g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.055);
+  s.connect(hp); hp.connect(g); g.connect(busMus); s.start(t); s.stop(t+.08);
+}
 
+/* agenda um compasso inteiro */
+function compasso(c, t0){
+  const a=arranjo(c), ac_=CICLO[c%4], tri=AC_[ac_], baixo=BX[ac_];
+  if(a.sub) nota("sub", t0, baixo, COMPASSO*.95, .22*a.sub);
+  if(a.pad) tri.forEach(f=>nota("pad", t0, f, COMPASSO*.98, .05*a.pad));
+  if(a.kick) [0,2].forEach(b=>kick(t0+b*T,.55*a.kick));
+  if(a.kick && c>=20) kick(t0+3.5*T,.3);
+  if(a.hat) for(let b=0;b<8;b++) hat(t0+b*T/2, (b%2? .07: .04)*a.hat);
+  if(a.arp){ const seq=[tri[0],tri[1],tri[2],tri[1],tri[2]*2,tri[1],tri[2],tri[0]];
+    seq.forEach((f,i)=>nota("arp", t0+i*T/2, f, .34, .055*a.arp)); }
+}
+
+/* agendador com lookahead: mantém ~400ms de música sempre pronta */
+let compassoAtual=0, tInicioMus=0;
+function musicaStart(){
+  compassoAtual=0; tInicioMus=ac.currentTime+.08;
+  clearInterval(agenda);
+  agenda=setInterval(()=>{
+    while(tInicioMus + compassoAtual*COMPASSO < ac.currentTime + .4 && compassoAtual < 44){
+      compasso(compassoAtual, tInicioMus + compassoAtual*COMPASSO);
+      compassoAtual++;
+    }
+    if(compassoAtual>=44) clearInterval(agenda);
+  }, 60);
+}
+function musicaStop(){ clearInterval(agenda); }
+
+/* ---------------- efeitos por cena ---------------- */
+const P2=[[.35,"whoosh"],[.77,"thock"],[.97,"whoosh"],[1.39,"thock"]];
+const P4=[...P2,[1.59,"whoosh"],[2.01,"thock"],[2.21,"whoosh"],[2.63,"thock"]];
+const digTicks=(ini,n,passo=.13)=>Array.from({length:n},(_,i)=>[ini+i*passo,"tick"]);
+const SONS = [
+ /* 0 abertura */ [[.35,"whoosh"],[.8,"thock",90],[.97,"whoosh"],[1.42,"thock",90],
+                   [2.4,"riser",1.5],[3.1,"whoosh",1.3],[3.55,"thock",70],
+                   [3.72,"whoosh",1.3],[4.25,"boom"]],
+ /* 1 marca */    [...P2, ...Array.from({length:25},(_,i)=>[.9+i*.075,"pop",640+i*22]),
+                   ...digTicks(4.6,14,.12), [7.8,"shimmer"]],
+ /* 2 marketing */[...P4, [.35,"tick"],[.5,"tick"],[.65,"tick"],[.8,"tick"],[.95,"tick"],
+                   [1.6,"shimmer"],[2.1,"pop",900],[5.9,"whoosh",.8]],
+ /* 3 cartela */  [[.1,"boom"]],
+ /* 4 vitória */  [...P2, [1.4,"tick"],[2.6,"tick"],[4.0,"tick"],[5.2,"tick"],[7.0,"pop",980],[5.3,"whoosh",.8]],
+ /* 5 tecnologia*/[...P4, [.4,"pop",520],[.7,"snap"],[1.35,"snap"],[2.0,"snap"],[6.3,"whoosh",.8]],
+ /* 6 metalife */ [...P2, [.35,"whoosh",.7],[.95,"snap"],[1.5,"snap"],[2.0,"snap"],
+                   [2.4,"snap"],[2.8,"snap"],[3.15,"snap"],[3.5,"thock",80]],
+ /* 7 wellhub */  [...P2, [.4,"tick"],[1.0,"tick"], ...Array.from({length:7},(_,i)=>[1.1+i*.22,"shimmer"]),
+                   ...digTicks(5.9,18,.12)],
+ /* 8 funil */    [...P4, [.4,"thock",150],[1.1,"thock",120],[1.8,"thock",95]],
+ /* 9 cartela */  [[.05,"riser",.8],[.85,"boom"]],
+ /* 10 fecho */   [[.3,"pop",880],[1.2,"shimmer"]],
+];
 function tocaCena(n){
   if(!ac) return;
-  const t0 = ac.currentTime + .02;
-  (SONS[n]||[]).forEach(([t,tipo,arg]) => {
-    const f = SFX[tipo]; if(f) f(t0 + t, arg);
-  });
+  const t0=ac.currentTime+.02;
+  (SONS[n]||[]).forEach(([t,tipo,arg])=>{ const f=SFX[tipo]; if(f) f(t0+t,arg); });
 }
 
 /* ================== motor ================== */
@@ -626,49 +733,93 @@ const escala=()=>palco.style.transform=`translate(-50%,-50%) scale(${Math.min(in
 addEventListener("resize",escala); escala();
 
 let i=0,timer=null,t0=0,rodando=false;
-function contadores(el){
-  el.querySelectorAll("[data-conta]").forEach(n=>{
-    const alvo=+n.dataset.conta, ini=+n.textContent||0, suf=n.dataset.suf||"";
-    let s=null; const dur=1300;
-    const passo=ts=>{ if(!s)s=ts;
-      const p=Math.min((ts-s)/dur,1), e=1-Math.pow(1-p,3);
-      n.textContent=Math.round(ini+(alvo-ini)*e)+suf;
-      if(p<1)requestAnimationFrame(passo); };
-    requestAnimationFrame(passo);
+const relogios=[];
+const agendar=(fn,ms)=>{ const id=setTimeout(fn,ms); relogios.push(id); return id; };
+const limpar=()=>{ relogios.splice(0).forEach(clearTimeout); };
+
+/* telas de texto que se revezam */
+function telas(el){
+  el.querySelectorAll("[data-in]").forEach(n=>{
+    agendar(()=>n.classList.add("on"), (+n.dataset.in)*1000);
+    if(n.dataset.out!=null)
+      agendar(()=>{ n.classList.remove("on"); n.classList.add("off"); }, (+n.dataset.out)*1000);
   });
 }
+
+/* efeito de digitação */
+function digitacao(el){
+  el.querySelectorAll("[data-digita]").forEach(n=>{
+    const txt=n.dataset.digita, ini=(+n.dataset.atraso||0)*1000, vel=+n.dataset.vel||26;
+    n.textContent="";
+    agendar(()=>{
+      n.classList.add("digita");
+      let k=0;
+      const it=setInterval(()=>{
+        n.textContent=txt.slice(0,++k);
+        if(k>=txt.length){ clearInterval(it); n.classList.add("pronto"); }
+      }, vel);
+      relogios.push(it);
+    }, ini);
+  });
+}
+
+/* contadores — cada um dispara no seu próprio momento, quando já está visível */
+function contadores(el){
+  el.querySelectorAll("[data-conta]").forEach(n=>{
+    const alvo=+n.dataset.conta, suf=n.dataset.suf||"", atraso=(+n.dataset.atraso||0)*1000;
+    const ini=+n.textContent||0, dur=1400;
+    agendar(()=>{
+      let s=null;
+      const passo=ts=>{ if(!s)s=ts;
+        const p=Math.min((ts-s)/dur,1), e=1-Math.pow(1-p,3);
+        n.textContent=Math.round(ini+(alvo-ini)*e)+suf;
+        if(p<1) requestAnimationFrame(passo); };
+      requestAnimationFrame(passo);
+    }, atraso);
+  });
+}
+
+/* vídeos de insert: começam do zero e sempre com texto por cima */
+function videos(el){
+  el.querySelectorAll("video").forEach(v=>{
+    v.currentTime=0; v.muted=true; v.play().catch(()=>{});
+  });
+}
+
 function mostra(n){
+  limpar();
   palco.innerHTML="";
   const c=CENAS[n], d=document.createElement("div");
   d.className=`cena ${c.cls}`; d.innerHTML=c.html; palco.appendChild(d);
-  tocaCena(n);
-  setTimeout(()=>contadores(d),1000);
-  timer=setTimeout(()=>{ d.classList.add("saindo");
-    setTimeout(()=>{ i++;
+  tocaCena(n); telas(d); digitacao(d); contadores(d); videos(d);
+  timer=agendar(()=>{ d.classList.add("saindo");
+    agendar(()=>{ i++;
       if(i<CENAS.length) mostra(i);
-      else{ rodando=false; btPlay.textContent="▶ Play"; }
+      else{ rodando=false; musicaStop(); btPlay.textContent="▶ Play"; }
     },460);
   }, c.dur*1000-460);
 }
+
 const ate=n=>CENAS.slice(0,n).reduce((a,c)=>a+c.dur,0);
 function tick(){ if(!rodando)return;
   relogio.textContent=`${Math.min((performance.now()-t0)/1000,TOTAL).toFixed(1)}s / ${TOTAL.toFixed(1)}s`;
   requestAnimationFrame(tick); }
 function play(){ if(rodando)return; rodando=true; btPlay.textContent="⏸ Rodando";
-  audioOn(); if(ac.state==="suspended") ac.resume(); padOn();
+  audioOn(); if(ac.state==="suspended") ac.resume(); musicaStart();
   t0=performance.now()-ate(i)*1000; mostra(i); tick(); }
-function reset(){ clearTimeout(timer); rodando=false; i=0;
-  btPlay.textContent="▶ Play"; relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0); clearTimeout(timer); }
+function pausa(){ limpar(); musicaStop(); rodando=false; btPlay.textContent="▶ Play"; }
+function reset(){ limpar(); musicaStop(); rodando=false; i=0;
+  btPlay.textContent="▶ Play"; relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0); limpar(); }
 
 const btPlay=document.getElementById("btPlay");
-btPlay.onclick=()=>rodando?(clearTimeout(timer),rodando=false,btPlay.textContent="▶ Play"):play();
+btPlay.onclick=()=>rodando?pausa():play();
 document.getElementById("btReset").onclick=reset;
 document.getElementById("btLimpo").onclick=()=>document.body.classList.toggle("gravando");
 const btSom=document.getElementById("btSom");
 btSom.onclick=()=>{ audioOn();
-  const mudo = bus.gain.value > .01;
+  const mudo=bus.gain.value>.01;
   bus.gain.setTargetAtTime(mudo?0:.9, ac.currentTime, .05);
-  btSom.textContent = mudo ? "🔇 Mudo" : "🔊 Som"; };
+  btSom.textContent=mudo?"🔇 Mudo":"🔊 Som"; };
 addEventListener("keydown",e=>{ if(e.code==="Space"){e.preventDefault();btPlay.click();} if(e.key==="r")reset(); });
 relogio.textContent=`0.0s / ${TOTAL.toFixed(1)}s`; mostra(0);
 </script>
